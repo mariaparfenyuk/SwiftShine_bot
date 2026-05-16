@@ -1,6 +1,13 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const getTodayTask = () => {
   try {
-    const filePath = path.join(__dirname, 'everydayTasks.json');
+    const filePath = path.join(__dirname, '..', 'everydayTasks.json');
     const rawData = fs.readFileSync(filePath, 'utf-8');
     const tasks = JSON.parse(rawData);
 
@@ -20,4 +27,4 @@ export const getTodayTask = () => {
     console.error(error);
     return null;
   }
-}
+};

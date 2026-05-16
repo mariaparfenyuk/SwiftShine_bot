@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { getCurrentDate } = require('./utils/getCurrentDate');
 const { getTodayTask } = require('./utils/getTodayTask');
+const { messages } = require('./messages');
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
@@ -23,46 +24,45 @@ function getFlyLadyWeek() {
   return weekCount > 5 ? 5 : weekCount;
 }
 
+// --- КЛАВИАТУРЫ ---
+
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.callback('📅 Задание на сегодня', 'get_everyday_task')],
-  [Markup.button.callback('🧹 Чек-лист по зонам', 'get_zone_checklist')],
-  [Markup.button.callback('🚨 SOS: Гости на пороге!', 'get_express_clean')],
-  [Markup.button.callback('💖 Поддержать автора', 'go_to_donate')]
+  [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
+  [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
+  [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
+  [Markup.button.callback(messages.DONATE, 'go_to_donate')]
 ]);
 
 const donateKeyboard = Markup.inlineKeyboard([
-  [Markup.button.url('🌍 PayPal', 'https://paypal.me/MParfeniuk100')],
-  [Markup.button.url('🇷🇺 Boosty', 'https://boosty.to/parfeniuk/donate')],
+  [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
+  [Markup.button.url(messages.BOOSTY, 'https://boosty.to/parfeniuk/donate')],
+  [Markup.button.callback(messages.BACK, 'go_to_main')]
 ]);
 
 const backKeyboard = Markup.inlineKeyboard([
-  Markup.button.callback('⬅️ В главное меню', 'go_to_main')
+  [Markup.button.callback(messages.BACK, 'go_to_main')]
 ]);
 
 bot.start((ctx) => {
   ctx.reply(
-    'Привет! Я твой карманный помощник по дому. Помогаю убираться за 15 минут в день без стресса. Выбирай кнопку ниже! 👇',
+    messages.HELLO,
     mainKeyboard
   );
 });
 
 bot.help((ctx) => {
-  ctx.reply(
-    'Я помогу тебе держать дом в чистоте, тратя всего 15 минут в день.\n\nЖми /start, чтобы открыть главное меню и выбрать нужный режим уборки!',
-    mainKeyboard
-  );
+  ctx.reply(messages.HELP_MESSAGE, { parse_mode: 'Markdown', reply_markup: mainKeyboard });
 });
 
 bot.action('get_everyday_task', async (ctx) => {
   await ctx.answerCbQuery();
-  const task = getTodayTask();
+  let task = getTodayTask();
 
   if (!task) {
-    await ctx.reply(
-      '📅 *Задание на сегодня*\n\nОтличные новости! На сегодня специальных заданий нет. Отдохни или повтори то, что не успела вчера! ✨',
-      { parse_mode: 'Markdown', reply_markup: backKeyboard }
-    );
-    return;
+    task = {
+      zone: messages.ALL_HOME,
+      text: messages.BUGY_27
+    };
   }
 
   const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
@@ -93,7 +93,7 @@ bot.action('get_zone_checklist', async (ctx) => {
     await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: backKeyboard });
   } catch (error) {
     console.error(error);
-    await ctx.reply('Не удалось загрузить чек-лист зон. Попробуй позже.', backKeyboard);
+    await ctx.reply(messages.CHECK_LIST_ERROR, backKeyboard);
   }
 });
 
@@ -110,58 +110,22 @@ bot.action('get_express_clean', async (ctx) => {
     await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: backKeyboard });
   } catch (error) {
     console.error(error);
-    await ctx.reply('Не удалось загрузить экстренный чек-лист. Но ты все равно справишься! Главное — спрячь хлам! 🔥', backKeyboard);
+    await ctx.reply(messages.EXPRESS_ERROR, backKeyboard);
   }
 });
-
 bot.action('go_to_donate', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply('Выбери удобный способ для поддержки проекта: 👇', donateKeyboard);
+  await ctx.reply(messages.DONATE_MESSAGE, { parse_mode: 'Markdown', reply_markup: donateKeyboard });
 });
 
 bot.action('go_to_main', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply('Выбирай режим, никуда не спеши. 15 минут и готово! 👇', mainKeyboard);
-});
-
-bot.on('text', (ctx) => {
-  const text = ctx.message.text;
-  if (!/^[а-яА-ЯёЁ\s]+$/u.test(text)) {
-    ctx.reply('Пожалуйста, отправьте сообщение только на русском языке.', mainKeyboard);
-    return;
-  }
-  ctx.reply(`Вы написали: "${text}"`, mainKeyboard);
-});
-
-bot.on(['sticker', 'photo', 'video', 'voice', 'audio', 'document', 'animation', 'video_note', 'contact', 'location', 'venue', 'dice', 'game', 'poll'], (ctx) => {
-  ctx.reply('Пожалуйста, отправьте обычный текст на русском языке.', mainKeyboard);
-});
-
-bot.help((ctx) => {
-  const helpMessage =
-    `🤖 *Я БыстроЧисто — твой помощник по уборке на лайте!*\n` +
-    `Помогаю держать дом в чистоте без изнуряющих генеральных уборок, тратя всего 10–15 минут в день.\n\n` +
-    `*Чем я полезен и как со мной работать:*\n\n` +
-    `📅 *Задание на день (Микро-шаги)*\n` +
-    `Точечная задача в конкретной зоне на сегодня. Включай таймер на 15 минут, делай одно быстрое действие и отдыхай! Задания чередуются по четным/нечетным месяцам, чтобы не было рутины.\n\n` +
-    `📋 *Чек-лист на неделю (Фокус-зоны)*\n` +
-    `Каждую неделю фокус смещается на одну из 5 макро-зон дома:\n` +
-    `• Неделя 1: Прихожая и Коридор 🚪\n` +
-    `• Неделя 2: Кухня 🍳\n` +
-    `• Неделя 3: Ванная и Туалет 🧼\n` +
-    `• Неделя 4: Спальня и Гостиная 🛌\n` +
-    `• Неделя 5: Балкон и Хобби-зоны 📦\n` +
-    `Запрашивай список задач, чтобы видеть общую картину недели.\n\n` +
-    `🚨 *Экстренная уборка (План-перехват)*\n` +
-    `Друзья или родственники уже на пороге? Без паники! Это пошаговый 15-минутный SOS-гид, который поможет быстро замаскировать бардак и создать идеальную иллюзию порядка в ключевых зонах.\n\n` +
-    `Жми /start, чтобы открыть главное меню! 👇`;
-
-  ctx.reply(helpMessage, { parse_mode: 'Markdown', reply_markup: mainKeyboard });
+  await ctx.reply(messages.MAIN_MENU, mainKeyboard);
 });
 
 bot.catch((err, ctx) => {
   console.error(err);
-  ctx.reply('Произошла ошибка. Попробуйте еще раз.', mainKeyboard);
+  ctx.reply(messages.ERROR, mainKeyboard);
 });
 
 bot.launch();
