@@ -6,6 +6,7 @@ const { getCurrentDate } = require('./utils/getCurrentDate');
 const { getTodayTask } = require('./utils/getTodayTask');
 const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
+const { trackStats } = require('./utils/trackStats');
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
@@ -47,6 +48,8 @@ const donateKeyboard = Markup.inlineKeyboard([
 ]);
 
 bot.start((ctx) => {
+  trackStats();
+
   ctx.reply(
     messages.HELLO,
     mainKeyboard
