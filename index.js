@@ -2,16 +2,14 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
-const http = require('http'); // Встроенный модуль для веб-сервера
+const http = require('http');
 const { getCurrentDate } = require('./utils/getCurrentDate');
 const { getTodayTask } = require('./utils/getTodayTask');
 const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
 
-// === НАСТРОЙКА WEB APP ===
-// Сюда мы позже впишем твой реальный HTTPS адрес
-const APP_URL = 'https://5.22.222.29:3000';
+const APP_URL = 'https://swift-shine-6xh18lhey-mariia-parfeniuks-projects.vercel.app';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
