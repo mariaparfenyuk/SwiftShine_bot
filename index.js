@@ -2,11 +2,16 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
+const http = require('http'); // Встроенный модуль для веб-сервера
 const { getCurrentDate } = require('./utils/getCurrentDate');
 const { getTodayTask } = require('./utils/getTodayTask');
 const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
+
+// === НАСТРОЙКА WEB APP ===
+// Сюда мы позже впишем твой реальный HTTPS адрес
+const APP_URL = 'https://5.22.222.29:3000';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
@@ -34,7 +39,9 @@ refreshDateCache();
 
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
+// Главное меню с новой кнопкой Telegram Web App
 const mainKeyboard = Markup.inlineKeyboard([
+  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)], // Кнопка Web App таймера
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
@@ -49,11 +56,7 @@ const donateKeyboard = Markup.inlineKeyboard([
 
 bot.start((ctx) => {
   trackStats();
-
-  ctx.reply(
-    messages.HELLO,
-    mainKeyboard
-  );
+  ctx.reply(messages.HELLO, mainKeyboard);
 });
 
 bot.help((ctx) => {
@@ -62,7 +65,6 @@ bot.help((ctx) => {
 
 bot.action('get_everyday_task', async (ctx) => {
   await ctx.answerCbQuery();
-
   let task = getTodayTask(everydayTasksData, currentBotDate.day, currentBotDate.month);
 
   if (!task) {
@@ -76,9 +78,9 @@ bot.action('get_everyday_task', async (ctx) => {
     reply_markup: navigationKeyboard.reply_markup
   });
 });
+
 bot.action('get_zone_checklist', async (ctx) => {
   await ctx.answerCbQuery();
-
   try {
     const currentWeek = currentBotDate.flyLadyWeek;
     const weekData = monthTasksData.find(item => item.week === currentWeek);
@@ -103,7 +105,6 @@ bot.action('get_zone_checklist', async (ctx) => {
 
 bot.action('get_express_clean', async (ctx) => {
   await ctx.answerCbQuery();
-
   try {
     const formattedSteps = expressCheckListData.steps.map(s => `⏱ *Шаг ${s.step} [${s.time}]: ${s.action}*\n${s.description}`).join('\n\n');
     const message = `${expressCheckListData.title}\n\n${expressCheckListData.intro}\n\n──────────────────\n\n${formattedSteps}\n\n──────────────────\n\n✨ *${expressCheckListData.outro}*`;
@@ -117,7 +118,6 @@ bot.action('get_express_clean', async (ctx) => {
 
 bot.action('go_to_donate', async (ctx) => {
   await ctx.answerCbQuery();
-
   await ctx.reply(messages.DONATE_MESSAGE, {
     parse_mode: 'Markdown',
     reply_markup: donateKeyboard.reply_markup
@@ -134,7 +134,54 @@ bot.catch((err, ctx) => {
   ctx.reply(messages.ERROR, mainKeyboard);
 });
 
+// === СЕРВЕР ДЛЯ РАЗДАЧИ ФРОНТЕНДА ТАЙМЕРА ===
+const server = http.createServer((req, res) => {
+  // Формируем безопасный путь к файлам внутри папки public
+  let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+
+  // Защита от попыток выйти за пределы папки public
+  if (!filePath.startsWith(path.join(__dirname, 'public'))) {
+    res.writeHead(403);
+    return res.end('Forbidden');
+  }
+
+  const extname = path.extname(filePath);
+  let contentType = 'text/html';
+
+  if (extname === '.js') contentType = 'text/javascript';
+  if (extname === '.css') contentType = 'text/css';
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        res.writeHead(404);
+        res.end('File Not Found');
+      } else {
+        res.writeHead(500);
+        res.end(`Server Error: ${error.code}`);
+      }
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
+    }
+  });
+});
+
+// Запускаем статический сервер на порту 3000
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`[Web App] Сервер стамически раздается на порту ${PORT}`);
+});
+
+// Запуск Telegram-бота
 bot.launch();
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// Корректное завершение работы при остановке сервера
+process.once('SIGINT', () => {
+  bot.stop('SIGINT');
+  server.close();
+});
+process.once('SIGTERM', () => {
+  bot.stop('SIGTERM');
+  server.close();
+});
