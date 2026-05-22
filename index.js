@@ -37,9 +37,8 @@ refreshDateCache();
 
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
-// Главное меню с новой кнопкой Telegram Web App
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)], // Кнопка Web App таймера
+  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
@@ -132,12 +131,9 @@ bot.catch((err, ctx) => {
   ctx.reply(messages.ERROR, mainKeyboard);
 });
 
-// === СЕРВЕР ДЛЯ РАЗДАЧИ ФРОНТЕНДА ТАЙМЕРА ===
 const server = http.createServer((req, res) => {
-  // Формируем безопасный путь к файлам внутри папки public
   let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
 
-  // Защита от попыток выйти за пределы папки public
   if (!filePath.startsWith(path.join(__dirname, 'public'))) {
     res.writeHead(403);
     return res.end('Forbidden');
@@ -165,16 +161,13 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// Запускаем статический сервер на порту 3000
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`[Web App] Сервер стамически раздается на порту ${PORT}`);
 });
 
-// Запуск Telegram-бота
 bot.launch();
 
-// Корректное завершение работы при остановке сервера
 process.once('SIGINT', () => {
   bot.stop('SIGINT');
   server.close();
