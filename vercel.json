@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/index.html", "destination": "/public/index.html" },
+    { "source": "/roulette.html", "destination": "/public/roulette.html" },
+    { "source": "/rouletteTasks.json", "destination": "/public/rouletteTasks.json" },
+    { "source": "/styles.css", "destination": "/public/styles.css" },
+    { "source": "/timer.js", "destination": "/public/timer.js" }
+  ]
+}
