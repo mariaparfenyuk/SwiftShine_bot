@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/roulette.html",
+      "dest": "/public/roulette.html"
+    },
+    {
+      "src": "/rouletteTasks.json",
+      "dest": "/public/rouletteTasks.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.js"
+    }
+  ]
+}
