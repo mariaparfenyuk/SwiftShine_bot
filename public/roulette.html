@@ -193,14 +193,11 @@
     }
   }
 
-  // Шаг 2.1: Загружаем данные из rouletteTasks.json
-  // Так как файл лежит в корне, а сервер отдает корень как часть путей, проверим загрузку чуть позже
 async function loadTasks() {
     try {
       const response = await fetch('/rouletteTasks.json');
       tasksData = await response.json();
       
-      // Показываем случайное задание сразу при загрузке страницы, вместо "???"
       if (tasksData && tasksData.length > 0) {
         const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
         const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
@@ -211,13 +208,14 @@ async function loadTasks() {
         texts.zone.textContent = randomZone.name;
       }
     } catch (e) {
-      console.error("Не удалось прочитать rouletteTasks.json из папки public:", e);
-      // Если файл не найдется, покажет этот запасной вариант
-      texts.action.textContent = "Ошибка загрузки";
-      texts.quantity.textContent = "проверьте файл";
-      texts.zone.textContent = "в папке public";
+      console.error("Не удалось прочитать rouletteTasks.json:", e);
+      // Запасной рабочий вариант интерфейса, чтобы экран не был белым
+      texts.action.textContent = "Ошибка";
+      texts.quantity.textContent = "загрузки";
+      texts.zone.textContent = "данных";
+      tasksData = []; // Гарантируем, что переменная останется массивом
     }
-  }
+}
 
 function checkLimits() {
     const today = new Date().toISOString().split('T')[0];
@@ -302,7 +300,9 @@ function checkLimits() {
     if (tg) tg.close(); 
   });
 
-  loadTasks().then(checkLimits);
+ loadTasks().finally(() => {
+  checkLimits();
+});
 </script>
 </body>
 </html>
