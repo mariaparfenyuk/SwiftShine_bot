@@ -156,8 +156,7 @@
 </div>
 
 <script>
-  // Инициализация Telegram Web App
-  // Абсолютно безопасная проверка Telegram Web App
+  // Безопасная инициализация Telegram Web App
   var tg = null;
   if (window.Telegram && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
@@ -187,7 +186,8 @@
     zone: document.getElementById('text-zone')
   };
 
-function triggerHaptic(type) {
+  // Безопасная функция тактильной отдачи
+  function triggerHaptic(type) {
     if (tg && tg.HapticFeedback) {
       try {
         if (type === 'light') tg.HapticFeedback.impactOccurred('light');
@@ -200,7 +200,7 @@ function triggerHaptic(type) {
     }
   }
 
-async function loadTasks() {
+  async function loadTasks() {
     try {
       const response = await fetch('/rouletteTasks.json');
       tasksData = await response.json();
@@ -216,15 +216,14 @@ async function loadTasks() {
       }
     } catch (e) {
       console.error("Не удалось прочитать rouletteTasks.json:", e);
-      // Запасной рабочий вариант интерфейса, чтобы экран не был белым
       texts.action.textContent = "Ошибка";
       texts.quantity.textContent = "загрузки";
       texts.zone.textContent = "данных";
-      tasksData = []; // Гарантируем, что переменная останется массивом
+      tasksData = [];
     }
-}
+  }
 
-function checkLimits() {
+  function checkLimits() {
     const today = new Date().toISOString().split('T')[0];
     const savedDate = localStorage.getItem('slot_spin_date');
     const savedAttempts = localStorage.getItem('slot_spin_attempts');
@@ -239,8 +238,6 @@ function checkLimits() {
     counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
   }
 
-  loadTasks().then(checkLimits);
-
   function startSpin() {
     if (isSpinning) return;
     if (hasSpun && attemptsLeft <= 0) {
@@ -253,19 +250,16 @@ function checkLimits() {
     spinBtn.textContent = 'Удача решает...';
     spinBtn.disabled = true;
 
-    // Включаем анимацию кручения и размытия
     reels.forEach(reel => {
       reel.classList.remove('blur-off');
       reel.classList.add('spinning');
     });
     triggerHaptic('medium');
 
-    // Рандомайзер
     const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
     const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
     const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
 
-    // Последовательная остановка
     const delays = [1200, 1700, 2200];
     delays.forEach((delay, index) => {
       setTimeout(() => {
@@ -307,9 +301,9 @@ function checkLimits() {
     if (tg) tg.close(); 
   });
 
-loadTasks().finally(() => {
-  checkLimits();
-});
+  loadTasks().finally(() => {
+    checkLimits();
+  });
 </script>
 </body>
 </html>

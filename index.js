@@ -41,10 +41,12 @@ const mainKeyboard = Markup.inlineKeyboard([
   [Markup.button.webApp('🎰 Матрица Чистоты', `${APP_URL}/roulette.html`)],
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
-  [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
+  [
+    Markup.button.callback(messages.EXPRESS, 'get_express_clean'),
+    Markup.button.callback('⏱️ Таймер', 'start_timer')
+  ],
   [Markup.button.callback(messages.DONATE, 'go_to_donate')]
 ]);
-
 const donateKeyboard = Markup.inlineKeyboard([
   [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
   [Markup.button.url(messages.BOOSTY, 'https://boosty.to/parfeniuk/donate')],
