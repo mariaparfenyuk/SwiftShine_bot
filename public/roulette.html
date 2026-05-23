@@ -74,7 +74,7 @@
     .visor-frame {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      pointerEvents: none;
+      pointer-events: none;
       box-shadow: inset 0 15px 15px rgba(0,0,0,0.5), inset 0 -15px 15px rgba(0,0,0,0.5);
       border-radius: 9px;
     }
@@ -300,7 +300,7 @@ function checkLimits() {
     if (tg) tg.close(); 
   });
 
- loadTasks().finally(() => {
+loadTasks().finally(() => {
   checkLimits();
 });
 </script>
