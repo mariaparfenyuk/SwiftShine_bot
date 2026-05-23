@@ -38,8 +38,8 @@ refreshDateCache();
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
-  [Markup.button.webApp('🎰 Матрица Чистоты', `${APP_URL}/roulette.html`)],
+  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)], // Таймер берёт старый APP_URL (Vercel)
+  [Markup.button.webApp('🎰 Матрица Чистоты', 'https://apart-exhibitions-highly-dakota.trycloudflare.com/roulette.html')], // Матрица идёт на UpCloud
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
