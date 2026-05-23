@@ -154,7 +154,7 @@ const server = http.createServer((req, res) => {
 
   if (extname === '.js') contentType = 'text/javascript';
   if (extname === '.css') contentType = 'text/css';
-  if (extname === '.json') contentType = 'application/json; charset=utf-8';
+  if (extname === '.json') contentType = 'application/json';
 
   fs.readFile(filePath, (error, content) => {
     if (error) {
