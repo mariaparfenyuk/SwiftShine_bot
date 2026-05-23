@@ -38,14 +38,12 @@ refreshDateCache();
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', 'https://honors-goes-sagem-simon.trycloudflare.com/index.html')],
-  [Markup.button.webApp('🎰 Матрица Чистоты', 'https://honors-goes-sagem-simon.trycloudflare.com/roulette.html')],
+  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
   [Markup.button.callback(messages.DONATE, 'go_to_donate')]
 ]);
-
 
 const donateKeyboard = Markup.inlineKeyboard([
   [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
@@ -134,19 +132,11 @@ bot.catch((err, ctx) => {
 });
 
 const server = http.createServer((req, res) => {
-  // Находим чистый путь без параметров (например, /roulette.html)
-  const urlPath = req.url.split('?')[0];
+  let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
 
-  // Если запрашивают главную страницу, отдаем index.html
-  let fileName = urlPath === '/' ? 'index.html' : urlPath;
-
-  // Если запрашивают файлы рулетки, берем их прямо из папки public
-  let filePath = path.join(__dirname, 'public', fileName);
-
-  // Проверяем, что файл вообще существует
-  if (!fs.existsSync(filePath)) {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    return res.end('Файл не найден');
+  if (!filePath.startsWith(path.join(__dirname, 'public'))) {
+    res.writeHead(403);
+    return res.end('Forbidden');
   }
 
   const extname = path.extname(filePath);
@@ -154,12 +144,16 @@ const server = http.createServer((req, res) => {
 
   if (extname === '.js') contentType = 'text/javascript';
   if (extname === '.css') contentType = 'text/css';
-  if (extname === '.json') contentType = 'application/json';
 
   fs.readFile(filePath, (error, content) => {
     if (error) {
-      res.writeHead(500);
-      res.end(`Ошибка сервера: ${error.code}`);
+      if (error.code === 'ENOENT') {
+        res.writeHead(404);
+        res.end('File Not Found');
+      } else {
+        res.writeHead(500);
+        res.end(`Server Error: ${error.code}`);
+      }
     } else {
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content, 'utf-8');
@@ -168,8 +162,8 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Web App] Сервер статически раздается на порту ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`[Web App] Сервер стамически раздается на порту ${PORT}`);
 });
 
 bot.launch();
