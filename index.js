@@ -9,7 +9,7 @@ const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
 
-const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+const APP_URL = 'https://honors-goes-sagem-simon.trycloudflare.com';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
