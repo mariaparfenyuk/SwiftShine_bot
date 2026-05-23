@@ -9,7 +9,7 @@ const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
 
-const APP_URL = 'https://swift-shine-6xh18lhey-mariia-parfeniuks-projects.vercel.app';
+const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
@@ -38,7 +38,6 @@ refreshDateCache();
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
   [Markup.button.webApp('🎰 Матрица Чистоты', `${APP_URL}/roulette.html`)],
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
