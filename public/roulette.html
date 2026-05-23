@@ -157,13 +157,17 @@
 
 <script>
   // Инициализация Telegram Web App
-  const tg = window.Telegram?.WebApp;
-  if (tg) tg.ready();
+  // Абсолютно безопасная проверка Telegram Web App
+  var tg = null;
+  if (window.Telegram && window.Telegram.WebApp) {
+    tg = window.Telegram.WebApp;
+    tg.ready();
+  }
 
-  let tasksData = [];
-  let isSpinning = false;
-  let hasSpun = false;
-  let attemptsLeft = 3;
+  var tasksData = [];
+  var isSpinning = false;
+  var hasSpun = false;
+  var attemptsLeft = 3;
 
   // Элементы DOM
   const spinBtn = document.getElementById('spin-btn');
@@ -183,13 +187,16 @@
     zone: document.getElementById('text-zone')
   };
 
-  // Функция тактильной отдачи Telegram
-  function triggerHaptic(type) {
-    if (tg?.HapticFeedback) {
-      if (type === 'light') tg.HapticFeedback.impactOccurred('light');
-      if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
-      if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
-      if (type === 'warning') tg.HapticFeedback.notificationOccurred('warning');
+function triggerHaptic(type) {
+    if (tg && tg.HapticFeedback) {
+      try {
+        if (type === 'light') tg.HapticFeedback.impactOccurred('light');
+        if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+        if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+        if (type === 'warning') tg.HapticFeedback.notificationOccurred('warning');
+      } catch (e) {
+        console.log('Haptic error ignored');
+      }
     }
   }
 
