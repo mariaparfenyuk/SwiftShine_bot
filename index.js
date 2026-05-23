@@ -9,7 +9,7 @@ const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
 
-const APP_URL = 'https://honors-goes-sagem-simon.trycloudflare.com';
+const APP_URL = 'https://swift-shine-6xh18lhey-mariia-parfeniuks-projects.vercel.app';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
 const bot = new Telegraf(BOT_TOKEN);
