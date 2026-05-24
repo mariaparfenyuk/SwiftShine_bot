@@ -131,17 +131,16 @@ bot.catch((err, ctx) => {
   ctx.reply(messages.ERROR, mainKeyboard);
 });
 
-// Подключаем express (он у вас уже установлен)
+// Подключаем express
 const express = require('express');
 const app = express();
 
-// Указываем папку public для раздачи статических файлов
+// Указываем общую папку public для раздачи статики
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Дополнительно страхуем корневой роут: если кто-то перейдет по главной ссылке туннеля,
-// его автоматически перенаправит на roulette.html
+// Корневой роут: теперь он отдает файл из подпапки roulette!
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'roulette.html'));
+  res.sendFile(path.join(__dirname, 'public', 'roulette', 'roulette.html'));
 });
 
 // Запуск бота

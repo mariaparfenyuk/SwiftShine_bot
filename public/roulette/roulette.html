@@ -211,32 +211,32 @@
   }
 
   async function loadTasks() {
-    try {
-      const response = await fetch(`${window.location.origin}/rouletteTasks.json`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      tasksData = await response.json();
-      
-      if (tasksData && tasksData.length > 0) {
-        const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
-        const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
-        const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
-        
-        texts.action.textContent = randomTask.action_with_object;
-        texts.quantity.textContent = randomQuantity;
-        texts.zone.textContent = randomZone.name;
-      }
-    } catch (e) {
-      alert("Ошибка fetch/JSON: " + e.message); // Дополнительный алерт для проверки загрузки JSON
-      texts.action.textContent = "Ошибка";
-      texts.quantity.textContent = "загрузки";
-      texts.zone.textContent = "данных";
-      tasksData = [];
+  try {
+    const response = await fetch(`${window.location.origin}/roulette/rouletteTasks.json`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    tasksData = await response.json();
+    
+    if (tasksData && tasksData.length > 0) {
+      const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
+      const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
+      const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
+      
+      texts.action.textContent = randomTask.action_with_object;
+      texts.quantity.textContent = randomQuantity;
+      texts.zone.textContent = randomZone.name;
+    }
+  } catch (e) {
+    alert("Ошибка fetch/JSON: " + e.message);
+    texts.action.textContent = "Ошибка";
+    texts.quantity.textContent = "загрузки";
+    texts.zone.textContent = "данных";
+    tasksData = [];
   }
+}
 
   function checkLimits() {
     const today = new Date().toISOString().split('T')[0];
