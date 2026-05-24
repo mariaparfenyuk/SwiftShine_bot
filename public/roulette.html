@@ -156,8 +156,13 @@
 </div>
 
 <script>
-  // Безопасная инициализация Telegram Web App
+  
   var tg = null;
+  window.onerror = function(message, source, lineno, colno, error) {
+  alert("Ошибка JS: " + message + " в " + source + ":" + lineno);
+  return true;
+};
+
   if (window.Telegram && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
     tg.ready();
@@ -168,7 +173,6 @@
   var hasSpun = false;
   var attemptsLeft = 3;
 
-  // Элементы DOM
   const spinBtn = document.getElementById('spin-btn');
   const actionBlock = document.getElementById('action-block');
   const goBtn = document.getElementById('go-btn');
@@ -201,27 +205,32 @@
   }
 
   async function loadTasks() {
-    try {
-      const response = await fetch('/rouletteTasks.json');
-      tasksData = await response.json();
-      
-      if (tasksData && tasksData.length > 0) {
-        const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
-        const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
-        const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
-        
-        texts.action.textContent = randomTask.action_with_object;
-        texts.quantity.textContent = randomQuantity;
-        texts.zone.textContent = randomZone.name;
-      }
-    } catch (e) {
-      console.error("Не удалось прочитать rouletteTasks.json:", e);
-      texts.action.textContent = "Ошибка";
-      texts.quantity.textContent = "загрузки";
-      texts.zone.textContent = "данных";
-      tasksData = [];
+  try {
+    const response = await fetch(`${window.location.origin}/rouletteTasks.json`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    tasksData = await response.json();
+    
+    if (tasksData && tasksData.length > 0) {
+      const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
+      const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
+      const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
+      
+      texts.action.textContent = randomTask.action_with_object;
+      texts.quantity.textContent = randomQuantity;
+      texts.zone.textContent = randomZone.name;
+    }
+  } catch (e) {
+    console.error("Не удалось прочитать rouletteTasks.json:", e);
+    texts.action.textContent = "Ошибка";
+    texts.quantity.textContent = "загрузки";
+    texts.zone.textContent = "данных";
+    tasksData = [];
   }
+}
 
   function checkLimits() {
     const today = new Date().toISOString().split('T')[0];
