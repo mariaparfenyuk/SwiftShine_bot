@@ -2,7 +2,6 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
 const { getCurrentDate } = require('./utils/getCurrentDate');
 const { getTodayTask } = require('./utils/getTodayTask');
 const { messages } = require('./messages');
@@ -38,8 +37,8 @@ refreshDateCache();
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)], // Таймер берёт старый APP_URL (Vercel)
-  [Markup.button.webApp('🎰 Матрица Чистоты', 'https://apart-exhibitions-highly-dakota.trycloudflare.com/roulette.html')], // Матрица идёт на UpCloud
+  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
+  [Markup.button.webApp('🎰 Матрица Чистоты', 'https://apart-exhibitions-highly-dakota.trycloudflare.com/')]
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
@@ -132,43 +131,31 @@ bot.catch((err, ctx) => {
   ctx.reply(messages.ERROR, mainKeyboard);
 });
 
-const server = http.createServer((req, res) => {
-  let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+// Подключаем express (он у вас уже установлен)
+const express = require('express');
+const app = express();
 
-  if (!filePath.startsWith(path.join(__dirname, 'public'))) {
-    res.writeHead(403);
-    return res.end('Forbidden');
-  }
+// Указываем папку public для раздачи статических файлов
+app.use(express.static(path.join(__dirname, 'public')));
 
-  const extname = path.extname(filePath);
-  let contentType = 'text/html';
-
-  if (extname === '.js') contentType = 'text/javascript';
-  if (extname === '.css') contentType = 'text/css';
-
-  fs.readFile(filePath, (error, content) => {
-    if (error) {
-      if (error.code === 'ENOENT') {
-        res.writeHead(404);
-        res.end('File Not Found');
-      } else {
-        res.writeHead(500);
-        res.end(`Server Error: ${error.code}`);
-      }
-    } else {
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
-    }
-  });
+// Дополнительно страхуем корневой роут: если кто-то перейдет по главной ссылке туннеля,
+// его автоматически перенаправит на roulette.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'roulette.html'));
 });
 
+// Запуск бота
+bot.launch().then(() => {
+  console.log('[Bot] Telegram бот успешно запущен');
+});
+
+// Запуск Express-сервера на порту 3000 для Cloudflare
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`[Web App] Сервер стамически раздается на порту ${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`[Web App] Сервер статики успешно запущен на порту ${PORT}`);
 });
 
-bot.launch();
-
+// Корректное завершение работы при перезапуске PM2
 process.once('SIGINT', () => {
   bot.stop('SIGINT');
   server.close();
