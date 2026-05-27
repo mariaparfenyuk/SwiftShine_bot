@@ -82,14 +82,8 @@
 
   async function loadTasks() {
     try {
-      if (tasksData && tasksData.length > 0) {
-        const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
-        const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
-        const randomQuantity = randomTask.quantity_options[Math.floor(Math.random() * randomTask.quantity_options.length)];
-
-        if (texts.action) texts.action.textContent = randomTask.action_with_object;
-        if (texts.quantity) texts.quantity.textContent = randomQuantity;
-        if (texts.zone) texts.zone.textContent = randomZone.name;
+      if (!tasksData || tasksData.length === 0) {
+        console.warn("Массив задач пуст!");
       }
     } catch (e) {
       console.error("Ошибка инициализации: ", e);
