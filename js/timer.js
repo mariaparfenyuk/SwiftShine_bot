@@ -210,9 +210,7 @@
   btnStart.addEventListener('click', () => timer.start());
   btnPause.addEventListener('click', () => timer.pause());
   btnReset.addEventListener('click', () => {
-    if (confirm("Сбросить таймер? Время обнулится.")) {
-      timer.reset();
-    }
+    timer.reset();
   });
 
   if (timerDisplay) timerDisplay.textContent = formatTime(timer.timeLeft);

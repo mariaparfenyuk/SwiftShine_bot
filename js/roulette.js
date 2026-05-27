@@ -1,9 +1,53 @@
 (function () {
   const tg = window.Telegram?.WebApp;
 
-  let tasksData = [];
+  let tasksData = [
+    {
+      "name": "Кухня",
+      "tasks": [
+        {
+          "action_with_object": "Протри раковину и смеситель",
+          "quantity_options": ["1 раз", "до блеска", "за 2 минуты"]
+        },
+        {
+          "action_with_object": "Протри кухонные фасады",
+          "quantity_options": ["3 шт", "верхний ряд", "вокруг ручек"]
+        },
+        {
+          "action_with_object": "Наведи порядок в специях или крупах",
+          "quantity_options": ["1 полка", "5 баночек", "быстро"]
+        }
+      ]
+    },
+    {
+      "name": "Ванная и туалет",
+      "tasks": [
+        {
+          "action_with_object": "Почисти зеркало",
+          "quantity_options": ["1 раз", "главное", "быстро"]
+        },
+        {
+          "action_with_object": "Протри полочки с косметикой",
+          "quantity_options": ["1 полка", "все тюбики", "сверху"]
+        }
+      ]
+    },
+    {
+      "name": "Жилая комната",
+      "tasks": [
+        {
+          "action_with_object": "Разложи вещи по местам",
+          "quantity_options": ["5 штук", "10 штук", "стул/диван"]
+        },
+        {
+          "action_with_object": "Протри пыль на видимых поверхностях",
+          "quantity_options": ["1 комод", "телевизор и тумба", "подоконник"]
+        }
+      ]
+    }
+  ];
+
   let isSpinning = false;
-  let hasSpun = false;
   let attemptsLeft = 3;
 
   const spinBtn = document.getElementById('spin-btn');
@@ -38,15 +82,6 @@
 
   async function loadTasks() {
     try {
-      // ИСПРАВЛЕНО: Теперь ищем файл rouletteTasks.json в папке roulette/ в корне проекта
-      const response = await fetch(`${window.location.origin}/roulette/rouletteTasks.json`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      tasksData = await response.json();
-
       if (tasksData && tasksData.length > 0) {
         const randomZone = tasksData[Math.floor(Math.random() * tasksData.length)];
         const randomTask = randomZone.tasks[Math.floor(Math.random() * randomZone.tasks.length)];
@@ -57,11 +92,7 @@
         if (texts.zone) texts.zone.textContent = randomZone.name;
       }
     } catch (e) {
-      console.error("Ошибка fetch/JSON: ", e);
-      if (texts.action) texts.action.textContent = "Ошибка";
-      if (texts.quantity) texts.quantity.textContent = "загрузки";
-      if (texts.zone) texts.zone.textContent = "данных";
-      tasksData = [];
+      console.error("Ошибка инициализации: ", e);
     }
   }
 
@@ -78,6 +109,7 @@
       attemptsLeft = parseInt(savedAttempts, 10);
     }
     if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
+    if (attemptsLeft <= 0 && rerollBtn) rerollBtn.disabled = true;
   }
 
   function stopReelsWithError() {
@@ -92,28 +124,29 @@
       spinBtn.textContent = 'Крутить рулетку';
       spinBtn.disabled = false;
     }
-    if (texts.action) texts.action.textContent = "Попробуйте";
-    if (texts.quantity) texts.quantity.textContent = "еще";
-    if (texts.zone) texts.zone.textContent = "раз";
   }
 
   function startSpin() {
     if (isSpinning) return;
 
-    // Защита: если данные задач по какой-то причине не загрузились, не даем крутить вечно
     if (!tasksData || tasksData.length === 0) {
       triggerHaptic('warning');
       stopReelsWithError();
       return;
     }
 
-    if (hasSpun && attemptsLeft <= 0) {
+    if (attemptsLeft <= 0) {
       triggerHaptic('warning');
       alert('3 задачи в день! Маленькие шажки, чтобы не перегореть');
       return;
     }
 
     isSpinning = true;
+
+    attemptsLeft = Math.max(0, attemptsLeft - 1);
+    localStorage.setItem('slot_spin_attempts', attemptsLeft.toString());
+    if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
+
     if (spinBtn) {
       spinBtn.textContent = 'Удача решает...';
       spinBtn.disabled = true;
@@ -149,13 +182,6 @@
           triggerHaptic('success');
           if (spinBtn) spinBtn.classList.add('hidden');
           if (actionBlock) actionBlock.classList.remove('hidden');
-
-          if (hasSpun) {
-            attemptsLeft = Math.max(0, attemptsLeft - 1);
-            localStorage.setItem('slot_spin_attempts', attemptsLeft.toString());
-            if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
-          }
-          hasSpun = true;
           if (attemptsLeft <= 0 && rerollBtn) rerollBtn.disabled = true;
         }
       }, delay);
@@ -166,7 +192,13 @@
 
   if (rerollBtn) {
     rerollBtn.addEventListener('click', () => {
+      if (attemptsLeft <= 0) {
+        triggerHaptic('warning');
+        alert('3 задачи в день! Маленькие шажки, чтобы не перегореть');
+        return;
+      }
       if (actionBlock) actionBlock.classList.add('hidden');
+      if (spinBtn) spinBtn.remove('hidden');
       if (spinBtn) spinBtn.classList.remove('hidden');
       startSpin();
     });

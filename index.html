@@ -42,27 +42,30 @@
     </div>
 
     <div id="screen-roulette" style="display: none;">
-      <h2 style="color: #1e3a8a;">Матрица Чистоты</h2>
-      <div class="slot-wrapper">
-        <div class="slot-machine">
-          <div class="reel" id="reel-action"><div class="text-container" id="text-action">???</div></div>
-          <div class="reel" id="reel-quantity"><div class="text-container" id="text-quantity">???</div></div>
-          <div class="reel" id="reel-zone"><div class="text-container" id="text-zone">???</div></div>
-        </div>
-        <div class="visor-frame"></div>
-      </div>
-      <div class="controls">
-        <button id="spin-btn" class="main-btn">Крутить рулетку</button>
-        <div id="action-block" class="action-block hidden">
-          <button id="go-btn" class="go-btn">Погнали! 🚀</button>
-          <div class="reroll-row">
-            <button id="reroll-btn" class="reroll-btn">Перекрутить 🔄</button>
-            <span class="counter" id="attempts-counter">Осталось попыток: 3</span>
-          </div>
-        </div>
+  <h2 style="color: #1e3a8a; text-align: center; margin-bottom: 20px;">Матрица Чистоты</h2>
+  
+  <div class="slot-wrapper">
+    <div class="slot-machine">
+      <div class="reel" id="reel-action"><div class="text-container" id="text-action">???</div></div>
+      <div class="reel" id="reel-quantity"><div class="text-container" id="text-quantity">???</div></div>
+      <div class="reel" id="reel-zone"><div class="text-container" id="text-zone">???</div></div>
+    </div>
+    <div class="visor-frame"></div>
+  </div>
+  
+  <div class="controls">
+    <button id="spin-btn" class="main-btn">Крутить рулетку</button>
+    <div id="action-block" class="action-block hidden">
+      <button id="go-btn" class="go-btn">Погнали! 🚀</button>
+      <div class="reroll-row">
+        <button id="reroll-btn" class="reroll-btn">Перекрутить 🔄</button>
+        <span class="counter" id="attempts-counter">Осталось попыток: 3</span>
       </div>
     </div>
+    
+    <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 24px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
   </div>
+</div>
 
   <script>
     const tg = window.Telegram?.WebApp;
@@ -72,7 +75,7 @@
     }
 
     function switchScreen(screenName) {
-      document.getElementById('screen-menu').style.build = 'none'; // Защита от старых конфликтов
+      document.getElementById('screen-menu').style.build = 'none';
       document.getElementById('screen-menu').style.display = 'none';
       document.getElementById('screen-timer').style.display = 'none';
       document.getElementById('screen-roulette').style.display = 'none';
@@ -89,5 +92,6 @@
   </script>
   
   <script src="js/roulette.js"></script>
+  <script src="js/timer.js"></script>
 </body>
 </html>
