@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Помощник Уборки</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/input.min.js"></script>
+  
+  <style>
+    /* Базовые общие стили */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #1c1c1e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      box-sizing: border-box;
+    }
+    .container {
+      width: 100%;
+      max-width: 450px;
+      padding: 16px;
+    }
+    .hidden { display: none !important; }
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Стили Главного Меню */
+    .menu-title { text-align: center; margin-bottom: 24px; color: #f1d154; }
+    .menu-grid { display: flex; flex-direction: column; gap: 16px; }
+    .btn-menu-item { background-color: #2c2c2e; color: #fff; border: 2px solid #3a3a3c; text-align: left; display: flex; align-items: center; gap: 12px; }
+    .btn-menu-item:active { background-color: #3a3a3c; }
+
+    /* Кнопка Назад для экранов */
+    .back-row { margin-bottom: 16px; }
+    .btn-back { background-color: transparent; color: #aeaeaf; font-size: 15px; text-align: left; padding: 8px 0; width: auto; }
+
+    /* Стили Рулетки (перенесены из твоего roulette.html) */
+    .slot-wrapper { position: relative; background-color: #101012; padding: 12px; border-radius: 12px; border: 3px solid #3a3a3c; overflow: hidden; }
+    .slot-machine { display: grid; grid-template-columns: 1.2fr 1fr 0.9fr; gap: 8px; height: 140px; }
+    .reel { background-color: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 8px; text-align: center; border: 1px solid #48484a; overflow: hidden; }
+    .text-container { font-size: 14px; font-weight: 600; line-height: 1.3; word-break: break-word; }
+    .spinning { animation: infiniteScroll 0.2s infinite linear; }
+    .blur-off { animation: blurFadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    @keyframes infiniteScroll { 0% { transform: translateY(0); filter: blur(4px); } 50% { transform: translateY(-10px); filter: blur(6px); } 100% { transform: translateY(10px); filter: blur(4px); } }
+    @keyframes blurFadeIn { 0% { filter: blur(6px); transform: scale(0.95); opacity: 0.5; } 100% { filter: blur(0px); transform: scale(1); opacity: 1; } }
+    .visor-frame { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; box-shadow: inset 0 15px 15px rgba(0,0,0,0.5), inset 0 -15px 15px rgba(0,0,0,0.5); border-radius: 9px; }
+    .controls { margin-top: 24px; display: flex; flex-direction: column; align-items: center; }
+    .main-btn { background-color: #34c759; color: #fff; box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3); }
+    .action-block { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .go-btn { background-color: #f1d154; color: #000; }
+    .reroll-row { display: flex; justify-content: space-between; align-items: center; }
+    .reroll-btn { width: auto; padding: 10px 16px; background-color: #3a3a3c; color: #fff; font-size: 14px; }
+    .counter { font-size: 13px; color: #aeaeaf; }
+
+    /* Стили Таймера */
+    .timer-box { text-align: center; margin-top: 20px; }
+    .timer-val { font-size: 64px; font-weight: bold; margin: 20px 0; color: #34c759; }
+    .motivator-box { min-height: 60px; font-size: 16px; color: #aeaeaf; margin-bottom: 24px; padding: 0 8px; transition: opacity 0.4s; }
+    .timer-controls { display: flex; flex-direction: column; gap: 12px; }
+    .btn-pause { background-color: #ff9500; color: white; }
+    .btn-reset { background-color: #ff3b30; color: white; }
+    .fade-out { opacity: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <div id="screen-menu">
+      <h2 class="menu-title">Центр Управления Чистотой</h2>
+      <div class="menu-grid">
+        <button class="btn-menu-item" onclick="switchScreen('timer')">⏱ Таймер дня (15 минут)</button>
+        <button class="btn-menu-item" onclick="switchScreen('roulette')">🎰 Слот-машина по зонам</button>
+      </div>
+    </div>
+
+    <div id="screen-timer" style="display: none;">
+      <div class="back-row">
+        <button class="btn-back" onclick="switchScreen('menu')">← Назад в меню</button>
+      </div>
+      <div class="timer-box">
+        <h2 style="color: #34c759;">Таймер Уборки</h2>
+        <div class="timer-val" id="timer-display">15:00</div>
+        <div class="motivator-box" id="motivator-text">Загрузка...</div>
+        <div class="timer-controls">
+          <button id="btn-start" class="main-btn">Старт 🚀</button>
+          <button id="btn-pause" class="btn-pause hidden">Пауза ⏸</button>
+          <button id="btn-reset" class="btn-reset">Сбросить 🔄</button>
+        </div>
+      </div>
+      <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+    </div>
+
+    <div id="screen-roulette" style="display: none;">
+      <div class="back-row">
+        <button class="btn-back" onclick="switchScreen('menu')">← Назад в меню</button>
+      </div>
+      <h2 style="color: #f1d154;">Матрица Чистоты</h2>
+      <div class="slot-wrapper">
+        <div class="slot-machine">
+          <div class="reel" id="reel-action"><div class="text-container" id="text-action">???</div></div>
+          <div class="reel" id="reel-quantity"><div class="text-container" id="text-quantity">???</div></div>
+          <div class="reel" id="reel-zone"><div class="text-container" id="text-zone">???</div></div>
+        </div>
+        <div class="visor-frame"></div>
+      </div>
+      <div class="controls">
+        <button id="spin-btn" class="main-btn">Крутить рулетку</button>
+        <div id="action-block" class="action-block hidden">
+          <button id="go-btn" class="go-btn">Погнали! 🚀</button>
+          <div class="reroll-row">
+            <button id="reroll-btn" class="reroll-btn">Перекрутить 🔄</button>
+            <span class="counter" id="attempts-counter">Осталось попыток: 3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    function switchScreen(screenName) {
+      document.getElementById('screen-menu').style.display = 'none';
+      document.getElementById('screen-timer').style.display = 'none';
+      document.getElementById('screen-roulette').style.display = 'none';
+
+      if (screenName === 'menu') {
+        document.getElementById('screen-menu').style.display = 'block';
+      } else if (screenName === 'timer') {
+        document.getElementById('screen-timer').style.display = 'block';
+      } else if (screenName === 'roulette') {
+        document.getElementById('screen-roulette').style.display = 'block';
+      }
+    }
+    switchScreen('menu');
+  </script>
+  
+<script src="js/roulette.js"></script>
+</body>
+</html>
