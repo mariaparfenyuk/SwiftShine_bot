@@ -37,7 +37,7 @@ refreshDateCache();
 setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
 
 const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('⏱ Запустить таймер 15 минут', APP_URL)],
+  [Markup.button.webApp('✨ Открыть Помощник Уборки', APP_URL)],
   [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
   [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
   [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
@@ -130,30 +130,24 @@ bot.catch((err, ctx) => {
   ctx.reply(messages.ERROR, mainKeyboard);
 });
 
-// Подключаем express
 const express = require('express');
 const app = express();
 
-// Указываем общую папку public для раздачи статики
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Корневой роут: теперь он отдает файл из подпапки roulette!
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'roulette', 'roulette.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Запуск бота
 bot.launch().then(() => {
   console.log('[Bot] Telegram бот успешно запущен');
 });
 
-// Запуск Express-сервера на порту 3000 для Cloudflare
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`[Web App] Сервер статики успешно запущен на порту ${PORT}`);
 });
 
-// Корректное завершение работы при перезапуске PM2
 process.once('SIGINT', () => {
   bot.stop('SIGINT');
   server.close();
