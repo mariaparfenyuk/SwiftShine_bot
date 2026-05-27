@@ -1,4 +1,3 @@
-// Логика Рулетки, адаптированная под SPA
 (function () {
   const tg = window.Telegram?.WebApp;
 
@@ -39,6 +38,7 @@
 
   async function loadTasks() {
     try {
+      // ИСПРАВЛЕНО: Теперь ищем файл rouletteTasks.json в папке roulette/ в корне проекта
       const response = await fetch(`${window.location.origin}/roulette/rouletteTasks.json`);
 
       if (!response.ok) {
@@ -80,8 +80,33 @@
     if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
   }
 
+  function stopReelsWithError() {
+    isSpinning = false;
+    reels.forEach(reel => {
+      if (reel) {
+        reel.classList.remove('spinning');
+        reel.classList.add('blur-off');
+      }
+    });
+    if (spinBtn) {
+      spinBtn.textContent = 'Крутить рулетку';
+      spinBtn.disabled = false;
+    }
+    if (texts.action) texts.action.textContent = "Попробуйте";
+    if (texts.quantity) texts.quantity.textContent = "еще";
+    if (texts.zone) texts.zone.textContent = "раз";
+  }
+
   function startSpin() {
     if (isSpinning) return;
+
+    // Защита: если данные задач по какой-то причине не загрузились, не даем крутить вечно
+    if (!tasksData || tasksData.length === 0) {
+      triggerHaptic('warning');
+      stopReelsWithError();
+      return;
+    }
+
     if (hasSpun && attemptsLeft <= 0) {
       triggerHaptic('warning');
       alert('3 задачи в день! Маленькие шажки, чтобы не перегореть');

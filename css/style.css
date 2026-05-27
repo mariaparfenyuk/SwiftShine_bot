@@ -1,0 +1,239 @@
+/* css/style.css */
+
+/* Базовые общие стили — Белый фон и Темно-синие акценты */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff; /* Чистый белый фон */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b; /* Глубокий темно-серый/синий для основного текста */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 450px;
+  padding: 16px;
+}
+
+.hidden { 
+  display: none !important; 
+}
+
+/* Кнопки — Темно-синий стиль */
+button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:disabled { 
+  opacity: 0.4; 
+  cursor: not-allowed; 
+}
+
+/* Стили Главного Меню */
+.menu-title { 
+  text-align: center; 
+  margin-bottom: 24px; 
+  color: #1e3a8a; /* Насыщенный темно-синий */
+}
+
+.menu-grid { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
+
+.btn-menu-item { 
+  background-color: #f1f5f9; /* Светло-серый фон кнопок */
+  color: #1e3a8a; /* Темно-синий текст */
+  border: 2px solid #e2e8f0; 
+  text-align: left; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+}
+
+.btn-menu-item:active { 
+  background-color: #e2e8f0; 
+}
+
+/* Кнопка Назад для экранов */
+.back-row { 
+  margin-bottom: 16px; 
+}
+
+.btn-back { 
+  background-color: transparent; 
+  color: #64748b; 
+  font-size: 15px; 
+  text-align: left; 
+  padding: 8px 0; 
+  width: auto; 
+}
+
+/* Стили Рулетки */
+.slot-wrapper { 
+  position: relative; 
+  background-color: #f8fafc; 
+  padding: 12px; 
+  border-radius: 12px; 
+  border: 3px solid #cbd5e1; 
+  overflow: hidden; 
+}
+
+.slot-machine { 
+  display: grid; 
+  grid-template-columns: 1.2fr 1fr 0.9fr; 
+  gap: 8px; 
+  height: 200px; 
+}
+
+.reel { 
+  background-color: #ffffff; 
+  border-radius: 8px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 12px;
+  text-align: center; 
+  border: 1px solid #cbd5e1; 
+  overflow: hidden; 
+  color: #1e3a8a; 
+}
+
+.text-container { 
+  font-size: 18px;
+  font-weight: bold; 
+  line-height: 1.4; 
+  word-break: break-word; 
+}
+
+.spinning { 
+  animation: infiniteScroll 0.2s infinite linear; 
+}
+
+.blur-off { 
+  animation: blurFadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+}
+
+@keyframes infiniteScroll { 
+  0% { transform: translateY(0); filter: blur(2px); } 
+  50% { transform: translateY(-10px); filter: blur(3px); } 
+  100% { transform: translateY(10px); filter: blur(2px); } 
+}
+
+@keyframes blurFadeIn { 
+  0% { filter: blur(3px); transform: scale(0.95); opacity: 0.5; } 
+  100% { filter: blur(0px); transform: scale(1); opacity: 1; } 
+}
+
+.visor-frame { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  pointer-events: none; 
+  box-shadow: inset 0 10px 10px rgba(0,0,0,0.05), inset 0 -10px 10px rgba(0,0,0,0.05); 
+  border-radius: 9px; 
+}
+
+.controls { 
+  margin-top: 24px; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+}
+
+.main-btn { 
+  background-color: #1e3a8a; 
+  color: #ffffff; 
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2); 
+}
+.main-btn:active {
+  background-color: #1d4ed8;
+}
+
+.action-block { 
+  width: 100%; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+.go-btn { 
+  background-color: #2563eb;
+  color: #ffffff; 
+}
+
+.reroll-row { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  width: 100%;
+}
+
+.reroll-btn { 
+  width: auto; 
+  padding: 10px 16px; 
+  background-color: #e2e8f0; 
+  color: #1e3a8a; 
+  font-size: 14px; 
+}
+
+.counter { 
+  font-size: 13px; 
+  color: #64748b; 
+}
+
+.timer-box { 
+  text-align: center; 
+  margin-top: 20px; 
+}
+
+.timer-val { 
+  font-size: 64px; 
+  font-weight: bold; 
+  margin: 20px 0; 
+  color: #1e3a8a;
+}
+
+.motivator-box { 
+  min-height: 60px; 
+  font-size: 16px; 
+  color: #475569; 
+  margin-bottom: 24px; 
+  padding: 0 8px; 
+  transition: opacity 0.4s; 
+}
+
+.timer-controls { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+.btn-pause { 
+  background-color: #f59e0b; 
+  color: white; 
+}
+
+.btn-reset { 
+  background-color: #ef4444;
+  color: white; 
+}
+
+.fade-out { 
+  opacity: 0; 
+}
