@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div id="screen-timer" class="hidden">
+    <div id="screen-timer" style="display: none;">
       <div class="back-row">
         <button class="btn-back" onclick="switchScreen('menu')">← Назад в меню</button>
       </div>
@@ -106,7 +106,7 @@
       <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
     </div>
 
-    <div id="screen-roulette" class="hidden">
+    <div id="screen-roulette" style="display: none;">
       <div class="back-row">
         <button class="btn-back" onclick="switchScreen('menu')">← Назад в меню</button>
       </div>
@@ -130,7 +130,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
@@ -141,16 +140,16 @@
     }
 
     function switchScreen(screenName) {
-      document.getElementById('screen-menu').classList.add('hidden');
-      document.getElementById('screen-timer').classList.add('hidden');
-      document.getElementById('screen-roulette').classList.add('hidden');
+      document.getElementById('screen-menu').style.display = 'none';
+      document.getElementById('screen-timer').style.display = 'none';
+      document.getElementById('screen-roulette').style.display = 'none';
 
       if (screenName === 'menu') {
-        document.getElementById('screen-menu').classList.remove('hidden');
+        document.getElementById('screen-menu').style.display = 'block';
       } else if (screenName === 'timer') {
-        document.getElementById('screen-timer').classList.remove('hidden');
+        document.getElementById('screen-timer').style.display = 'block';
       } else if (screenName === 'roulette') {
-        document.getElementById('screen-roulette').classList.remove('hidden');
+        document.getElementById('screen-roulette').style.display = 'block';
       }
     }
     switchScreen('menu');
