@@ -90,18 +90,27 @@
     }
   }
 
+  // НАЙДИ И ЗАМЕНИ ЭТИ ДВЕ ФУНКЦИИ В js/roulette.js:
+
   function checkLimits() {
     const today = new Date().toISOString().split('T')[0];
     const savedDate = localStorage.getItem('slot_spin_date');
     const savedAttempts = localStorage.getItem('slot_spin_attempts');
 
     if (savedDate !== today) {
+      // Если наступил новый день — жестко сбрасываем на 3 попытки
       localStorage.setItem('slot_spin_date', today);
       localStorage.setItem('slot_spin_attempts', '3');
       attemptsLeft = 3;
     } else if (savedAttempts !== null) {
+      // Если день тот же — берем то, что сохранено
       attemptsLeft = parseInt(savedAttempts, 10);
+    } else {
+      // Если зашли первый раз в жизни — выставляем 3
+      attemptsLeft = 3;
+      localStorage.setItem('slot_spin_attempts', '3');
     }
+
     if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
     if (attemptsLeft <= 0 && rerollBtn) rerollBtn.disabled = true;
   }
@@ -120,6 +129,7 @@
     }
   }
 
+
   function startSpin() {
     if (isSpinning) return;
 
@@ -137,7 +147,8 @@
 
     isSpinning = true;
 
-    attemptsLeft = Math.max(0, attemptsLeft - 1);
+    // ИСПРАВЛЕНО: Строго вычитаем ОДНУ попытку из текущего остатка
+    attemptsLeft = attemptsLeft - 1;
     localStorage.setItem('slot_spin_attempts', attemptsLeft.toString());
     if (counterEl) counterEl.textContent = `Осталось попыток: ${attemptsLeft}`;
 
