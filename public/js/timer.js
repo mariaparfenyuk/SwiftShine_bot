@@ -217,8 +217,12 @@
 
   if (timerDisplay) timerDisplay.textContent = formatTime(timer.timeLeft);
   updateMotivator(timer.timePassed);
+
+  if (timerDisplay) timerDisplay.textContent = formatTime(timer.timeLeft);
+  updateMotivator(timer.timePassed);
+
   if (timer.isRunning) {
-    btnStart.classList.add('hidden');
-    btnPause.classList.remove('hidden');
+    if (btnStart) btnStart.classList.add('hidden');
+    if (btnPause) btnPause.classList.remove('hidden');
   }
 })();
