@@ -2,135 +2,127 @@ require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
-const { getCurrentDate } = require('./utils/getCurrentDate');
+const express = require('express');
+
 const { getTodayTask } = require('./utils/getTodayTask');
-const { messages } = require('./messages');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
+const { messages } = require('./messages');
 
 const APP_URL = 'https://swift-shine-bot-mariia-parfeniuks-projects.vercel.app/';
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
-const BOT_TOKEN = process.env.BOT_TOKEN || 'ВАШ_ТОКЕН_ЗДЕСЬ';
-const bot = new Telegraf(BOT_TOKEN);
-
-const everydayTasksData = JSON.parse(fs.readFileSync(path.join(__dirname, 'everydayTasks.json'), 'utf-8'));
-const monthTasksData = JSON.parse(fs.readFileSync(path.join(__dirname, 'monthTasks.json'), 'utf-8'));
-const expressCheckListData = JSON.parse(fs.readFileSync(path.join(__dirname, 'expressCheckList.json'), 'utf-8'));
-
-const navigationKeyboard = Markup.inlineKeyboard([
-  [Markup.button.callback(messages.BACK, 'go_to_main')],
-  [Markup.button.callback(messages.DONATE, 'go_to_donate')]
-]);
-
-let currentBotDate = {
-  day: 1,
-  month: 1,
-  flyLadyWeek: 1
-};
-
-function refreshDateCache() {
-  currentBotDate = updateBotDateCache();
+if (!BOT_TOKEN) {
+  console.error('CRITICAL: BOT_TOKEN is missing in environment variables!');
+  process.exit(1);
 }
 
-refreshDateCache();
+const bot = new Telegraf(BOT_TOKEN);
 
-setInterval(refreshDateCache, 24 * 60 * 60 * 1000);
+const loadJson = (fileName) => JSON.parse(fs.readFileSync(path.join(__dirname, fileName), 'utf-8'));
+const everydayTasksData = loadJson('everydayTasks.json');
+const monthTasksData = loadJson('monthTasks.json');
+const expressCheckListData = loadJson('expressCheckList.json');
 
-const mainKeyboard = Markup.inlineKeyboard([
-  [Markup.button.webApp('✨ Открыть Помощник Уборки', APP_URL)],
-  [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
-  [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
-  [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
-  [Markup.button.callback(messages.DONATE, 'go_to_donate')]
-]);
+const keyboards = {
+  main: Markup.inlineKeyboard([
+    [Markup.button.webApp('✨ Открыть Помощник Уборки', APP_URL)],
+    [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
+    [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
+    [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
+    [Markup.button.callback(messages.DONATE, 'go_to_donate')]
+  ]),
 
-const donateKeyboard = Markup.inlineKeyboard([
-  [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
-  [Markup.button.url(messages.BOOSTY, 'https://boosty.to/parfeniuk/donate')],
-  [Markup.button.callback(messages.BACK, 'go_to_main')]
-]);
+  navigation: Markup.inlineKeyboard([
+    [Markup.button.callback(messages.BACK, 'go_to_main')],
+    [Markup.button.callback(messages.DONATE, 'go_to_donate')]
+  ]),
+
+  donate: Markup.inlineKeyboard([
+    [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
+    [Markup.button.url(messages.BOOSTY, 'https://boosty.to/parfeniuk/donate')],
+    [Markup.button.callback(messages.BACK, 'go_to_main')]
+  ])
+};
+
+function getFreshBotDate() {
+  return updateBotDateCache();
+}
 
 bot.start((ctx) => {
   trackStats();
-  ctx.reply(messages.HELLO, mainKeyboard);
+  ctx.reply(messages.HELLO, keyboards.main);
 });
 
 bot.help((ctx) => {
-  ctx.reply(messages.HELP_MESSAGE, { parse_mode: 'Markdown', reply_markup: mainKeyboard });
+  ctx.reply(messages.HELP_MESSAGE, { parse_mode: 'Markdown', reply_markup: keyboards.main });
 });
 
 bot.action('get_everyday_task', async (ctx) => {
   await ctx.answerCbQuery();
-  let task = getTodayTask(everydayTasksData, currentBotDate.day, currentBotDate.month);
+  const currentDate = getFreshBotDate();
+  let task = getTodayTask(everydayTasksData, currentDate.day, currentDate.month);
 
   if (!task) {
     task = { zone: messages.ALL_HOME, text: messages.BUGY_27 };
   }
 
   const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
-
-  await ctx.reply(message, {
-    parse_mode: 'Markdown',
-    reply_markup: navigationKeyboard.reply_markup
-  });
+  await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
 });
 
 bot.action('get_zone_checklist', async (ctx) => {
   await ctx.answerCbQuery();
   try {
-    const currentWeek = currentBotDate.flyLadyWeek;
+    const currentWeek = getFreshBotDate().flyLadyWeek;
     const weekData = monthTasksData.find(item => item.week === currentWeek);
 
     if (!weekData) {
-      await ctx.reply(
-        `🧹 *Чек-лист по зонам*\n\nНа этой неделе (Неделя ${currentWeek}) план уборки отдыхает. Расслабься!`,
-        { parse_mode: 'Markdown', reply_markup: navigationKeyboard.reply_markup }
-      );
-      return;
+      const emptyMessage = `🧹 *Чек-лист по зонам*\n\nНа этой неделе (Неделя ${currentWeek}) план уборки отдыхает. Расслабься!`;
+      return ctx.reply(emptyMessage, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
     }
 
     const tasksList = weekData.tasks.map((task, index) => `${index + 1}. ◽️ ${task}`).join('\n');
     const message = `${weekData.emoji} *Неделя ${weekData.week}: Зона «${weekData.zone}»*\n⚠️ *Твой чек-лист на эти 7 дней:*\nВыбирай по 1-2 пункта в день, ставь таймер на 15 минут и действуй!\n\n${tasksList}`;
 
-    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: navigationKeyboard.reply_markup });
+    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
   } catch (error) {
-    console.error(error);
-    await ctx.reply(messages.CHECK_LIST_ERROR, { reply_markup: navigationKeyboard.reply_markup });
+    console.error('Checklist Error:', error);
+    await ctx.reply(messages.CHECK_LIST_ERROR, keyboards.navigation);
   }
 });
 
 bot.action('get_express_clean', async (ctx) => {
   await ctx.answerCbQuery();
   try {
-    const formattedSteps = expressCheckListData.steps.map(s => `⏱ *Шаг ${s.step} [${s.time}]: ${s.action}*\n${s.description}`).join('\n\n');
+    const formattedSteps = expressCheckListData.steps
+      .map(s => `⏱ *Шаг ${s.step} [${s.time}]: ${s.action}*\n${s.description}`)
+      .join('\n\n');
+
     const message = `${expressCheckListData.title}\n\n${expressCheckListData.intro}\n\n──────────────────\n\n${formattedSteps}\n\n──────────────────\n\n✨ *${expressCheckListData.outro}*`;
 
-    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: navigationKeyboard.reply_markup });
+    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
   } catch (error) {
-    console.error(error);
-    await ctx.reply(messages.EXPRESS_ERROR, { reply_markup: navigationKeyboard.reply_markup });
+    console.error('Express Clean Error:', error);
+    await ctx.reply(messages.EXPRESS_ERROR, keyboards.navigation);
   }
 });
 
 bot.action('go_to_donate', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply(messages.DONATE_MESSAGE, {
-    parse_mode: 'Markdown',
-    reply_markup: donateKeyboard.reply_markup
-  });
+  await ctx.reply(messages.DONATE_MESSAGE, { parse_mode: 'Markdown', reply_markup: keyboards.donate });
 });
 
 bot.action('go_to_main', async (ctx) => {
   await ctx.answerCbQuery();
-  await ctx.reply(messages.MAIN_MENU, mainKeyboard);
+  await ctx.reply(messages.MAIN_MENU, keyboards.main);
 });
 
 bot.catch((err, ctx) => {
-  console.error(err);
-  ctx.reply(messages.ERROR, mainKeyboard);
+  console.error(`Telegraf caught an error: ${err.message}`);
+  ctx.reply(messages.ERROR, keyboards.main);
 });
 
-const express = require('express');
 const app = express();
 
 app.use(express.static(__dirname));
@@ -148,11 +140,13 @@ const server = app.listen(PORT, () => {
   console.log(`[Web App] Сервер статики успешно запущен на порту ${PORT}`);
 });
 
-process.once('SIGINT', () => {
-  bot.stop('SIGINT');
-  server.close();
-});
-process.once('SIGTERM', () => {
-  bot.stop('SIGTERM');
-  server.close();
-});
+const handleShutdown = (signal) => {
+  console.log(`Received ${signal}. Shutting down gracefully...`);
+  bot.stop(signal);
+  server.close(() => {
+    process.exit(0);
+  });
+};
+
+process.once('SIGINT', () => handleShutdown('SIGINT'));
+process.once('SIGTERM', () => handleShutdown('SIGTERM'));
