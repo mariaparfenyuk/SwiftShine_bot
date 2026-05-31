@@ -455,7 +455,11 @@ p {
 .coin-icon {
   width: 26px;
   height: 26px;
+  min-width: 26px;
+  min-height: 26px; 
+  flex-shrink: 0; 
   display: block;
+  object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.15));
 }
 
