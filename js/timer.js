@@ -229,7 +229,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
       this.syncControls(false);
 
       if (this.dom.motivator) {
-        dom.motivator.textContent = "Ура! Чистота и порядок! Ты легенда! 🏆";
+        this.dom.motivator.textContent = "Ура! Чистота и порядок! Ты легенда! 🏆";
       }
 
       if (this.dom.sound) {
