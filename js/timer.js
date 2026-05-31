@@ -8,7 +8,8 @@ const MOTIVATORS = window.MOTIVATORS || [];
   const STORAGE_KEYS = {
     TIME_LEFT: 'timer_time_left',
     IS_RUNNING: 'timer_is_running',
-    TIMESTAMP: 'timer_timestamp'
+    TIMESTAMP: 'timer_timestamp',
+    LAST_XP_DATE: 'timer_last_xp_date'
   };
 
   class CleaningTimer {
@@ -57,7 +58,9 @@ const MOTIVATORS = window.MOTIVATORS || [];
     }
 
     _clearPersistence() {
-      Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+      localStorage.removeItem(STORAGE_KEYS.TIME_LEFT);
+      localStorage.removeItem(STORAGE_KEYS.IS_RUNNING);
+      localStorage.removeItem(STORAGE_KEYS.TIMESTAMP);
     }
 
     _triggerEvent(callback, ...args) {
@@ -74,6 +77,15 @@ const MOTIVATORS = window.MOTIVATORS || [];
       if (this.isRunning) return;
 
       clearInterval(this.timerInterval);
+      const today = new Date().toISOString().split('T')[0];
+      const lastXpDate = localStorage.getItem(STORAGE_KEYS.LAST_XP_DATE);
+
+      if (lastXpDate !== today) {
+        if (window.Gamification) {
+          window.Gamification.addXP(20);
+        }
+        localStorage.setItem(STORAGE_KEYS.LAST_XP_DATE, today);
+      }
 
       this.isRunning = true;
       this._requestWakeLock();
@@ -98,7 +110,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
       if (!this.isRunning) return;
 
       this.isRunning = false;
-      clearInterval(this.timerInterval);
+      this.timerInterval = clearInterval(this.timerInterval);
       this._releaseWakeLock();
 
       this._saveState();
@@ -107,7 +119,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
 
     stop() {
       this.isRunning = false;
-      clearInterval(this.timerInterval);
+      this.timerInterval = clearInterval(this.timerInterval);
       this._releaseWakeLock();
     }
 
@@ -217,7 +229,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
       this.syncControls(false);
 
       if (this.dom.motivator) {
-        this.dom.motivator.textContent = "Ура! Чистота и порядок! Ты легенда! 🏆";
+        dom.motivator.textContent = "Ура! Чистота и порядок! Ты легенда! 🏆";
       }
 
       if (this.dom.sound) {
