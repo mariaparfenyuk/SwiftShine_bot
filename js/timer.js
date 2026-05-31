@@ -77,6 +77,8 @@ const MOTIVATORS = window.MOTIVATORS || [];
       if (this.isRunning) return;
 
       clearInterval(this.timerInterval);
+
+      // ГЕЙМИФИКАЦИЯ: Защита от накрутки
       const today = new Date().toISOString().split('T')[0];
       const lastXpDate = localStorage.getItem(STORAGE_KEYS.LAST_XP_DATE);
 
@@ -110,7 +112,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
       if (!this.isRunning) return;
 
       this.isRunning = false;
-      this.timerInterval = clearInterval(this.timerInterval);
+      clearInterval(this.timerInterval);
       this._releaseWakeLock();
 
       this._saveState();
@@ -119,7 +121,7 @@ const MOTIVATORS = window.MOTIVATORS || [];
 
     stop() {
       this.isRunning = false;
-      this.timerInterval = clearInterval(this.timerInterval);
+      clearInterval(this.timerInterval);
       this._releaseWakeLock();
     }
 
@@ -209,9 +211,16 @@ const MOTIVATORS = window.MOTIVATORS || [];
 
     updateMotivatorText(timePassed) {
       if (!this.dom.motivator) return;
+
+      if (!MOTIVATORS || MOTIVATORS.length === 0) {
+        this.dom.motivator.textContent = "Погнали! Маленькие шаги ведут к большой чистоте ✨";
+        return;
+      }
+
       const activeMotivator = MOTIVATORS.reduce((prev, curr) => {
         return (timePassed >= curr.timeFromStart) ? curr : prev;
       }, MOTIVATORS[0]);
+
       const targetIndex = MOTIVATORS.indexOf(activeMotivator);
       if (targetIndex !== this.currentMotivatorIndex) {
         this.currentMotivatorIndex = targetIndex;
