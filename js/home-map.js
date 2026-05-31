@@ -95,7 +95,7 @@
 
   function init() {
     bindEvents();
-    checkAllRooms24HoursTTL();
+    checkAllRoomsMonthTTL();
     updateMapHighlights();
     selectRoom(activeRoomId);
   }
@@ -112,30 +112,30 @@
     });
 
     document.getElementById('btn-go-map')?.addEventListener('click', () => {
-      checkAllRooms24HoursTTL();
+      checkAllRoomsMonthTTL();
       updateMapHighlights();
       selectRoom(activeRoomId);
     });
   }
 
-  function checkRoomTTL(roomId) {
+  function checkRoomMonthTTL(roomId) {
     const timestampKey = `map_timestamp_${roomId}`;
     const stateKey = `map_state_${roomId}`;
     const savedTimestamp = localStorage.getItem(timestampKey);
 
     if (!savedTimestamp) return;
 
-    const diffInMs = Date.now() - parseInt(savedTimestamp, 10);
-    const hoursPassed = diffInMs / (1000 * 60 * 60);
+    const savedDate = new Date(parseInt(savedTimestamp, 10));
+    const currentDate = new Date();
 
-    if (hoursPassed >= 24) {
+    if (savedDate.getFullYear() !== currentDate.getFullYear() || savedDate.getMonth() !== currentDate.getMonth()) {
       localStorage.removeItem(timestampKey);
       localStorage.removeItem(stateKey);
     }
   }
 
-  function checkAllRooms24HoursTTL() {
-    Object.keys(roomMapping).forEach(room => checkRoomTTL(room));
+  function checkAllRoomsMonthTTL() {
+    Object.keys(roomMapping).forEach(room => checkRoomMonthTTL(room));
   }
 
   function selectRoom(roomId) {
