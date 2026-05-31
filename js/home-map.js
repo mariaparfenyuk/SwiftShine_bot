@@ -237,6 +237,7 @@
 
       const config = roomMapping[roomId];
       const weekData = MONTH_TASKS_DATA.find(item => item.week === config.week);
+
       const totalCount = weekData ? weekData.tasks.length : 7;
 
       const savedState = JSON.parse(localStorage.getItem(`map_state_${roomId}`) || '{}');
@@ -246,7 +247,7 @@
 
       if (checkedCount > 0 && checkedCount < totalCount) {
         path.classList.add('status-progress');
-      } else if (checkedCount === totalCount && totalCount > 0) {
+      } else if (checkedCount === totalCount && totalCount > 0 && checkedCount > 0) {
         path.classList.add('status-clean');
       }
     });
