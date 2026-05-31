@@ -1,3 +1,8 @@
+/**
+ * ARCHITECTURE: Slot Machine (Roulette) Module with XP Integration
+ * Handles: Reels Spinning, Daily Reroll Limits & XP Rewards
+ */
+
 (function () {
   'use strict';
 
@@ -17,18 +22,17 @@
   ];
 
   let dailySpinsLeft = 3;
-  const reels = [
-    document.getElementById('reel-1'),
-    document.getElementById('reel-2'),
-    document.getElementById('reel-3')
-  ];
-  const spinBtn = document.getElementById('spin-btn');
-  const spinsCounter = document.getElementById('spins-left-counter');
+
+  // Ищем элементы по классам и по ID, чтобы точно найти их в твоей верстке
+  const reels = document.querySelectorAll('.reel');
+  const spinBtn = document.getElementById('spin-btn') || document.querySelector('.go-btn') || document.querySelector('.main-btn');
+  const spinsCounter = document.getElementById('spins-left-counter') || document.querySelector('.counter');
 
   function init() {
     updateCounterUI();
     if (spinBtn) {
-      spinBtn.addEventListener('click', spin);
+      // На всякий случай очищаем старые обработчики и вешаем один чистый
+      spinBtn.onclick = spin;
     }
   }
 
@@ -42,30 +46,38 @@
     dailySpinsLeft--;
     updateCounterUI();
 
-    spinBtn.disabled = true;
+    if (spinBtn) spinBtn.disabled = true;
     triggerHaptic('medium');
 
+    // ГЕЙМИФИКАЦИЯ
     if (window.Gamification) {
       window.Gamification.addXP(10);
     }
 
+    // Запуск анимации
     reels.forEach(reel => {
       reel.classList.remove('blur-off');
       reel.classList.add('spinning');
-      reel.querySelector('.text-container').textContent = "🎲 ...";
+      const txt = reel.querySelector('.text-container');
+      if (txt) txt.textContent = "🎲 ...";
     });
 
+    // Поочередная остановка
     reels.forEach((reel, index) => {
       setTimeout(() => {
         reel.classList.remove('spinning');
         reel.classList.add('blur-off');
 
         const randomTask = SLOT_TASKS[Math.floor(Math.random() * SLOT_TASKS.length)];
-        reel.querySelector('.text-container').textContent = randomTask;
+        const txt = reel.querySelector('.text-container');
+        if (txt) txt.textContent = randomTask;
         triggerHaptic('light');
 
+        // Финал анимации
         if (index === reels.length - 1) {
-          spinBtn.disabled = dailySpinsLeft <= 0;
+          if (spinBtn) {
+            spinBtn.disabled = dailySpinsLeft <= 0;
+          }
         }
       }, (index + 1) * 800);
     });
@@ -73,8 +85,14 @@
 
   function updateCounterUI() {
     if (spinsCounter) {
-      spinsCounter.textContent = dailySpinsLeft;
+      // Обновляем текст, сохраняя структуру (цифру)
+      if (spinsCounter.textContent.includes('попыт')) {
+        spinsCounter.textContent = `Осталось попыток: ${dailySpinsLeft}`;
+      } else {
+        spinsCounter.textContent = dailySpinsLeft;
+      }
     }
+
     if (spinBtn && dailySpinsLeft <= 0) {
       spinBtn.disabled = true;
       spinBtn.style.opacity = '0.5';
