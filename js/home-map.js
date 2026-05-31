@@ -1,16 +1,95 @@
+/**
+ * ARCHITECTURE: Home Map & Dynamic Checklist Module (Pure Frontend Version)
+ * Handles: SVG Interaction <---> Static JSON Data <---> LocalStorage (24h TTL)
+ */
+
 (function () {
   'use strict';
 
   const tg = window.Telegram?.WebApp;
-  let activeRoomId = 'kitchen';
+  let activeRoomId = 'kitchen'; // По умолчанию фокусим кухню
 
+  // ХАРДКОД БАЗЫ ДАННЫХ (Твой monthTasks.json переехал прямо сюда)
+  const MONTH_TASKS_DATA = [
+    {
+      "week": 1,
+      "zone": "Прихожая и Коридор",
+      "emoji": "🚪",
+      "tasks": [
+        "Разобрать сезонную обувь и спрятать неактуальные пары",
+        "Проверить вешалки и убрать лишнюю верхнюю одежду в шкаф",
+        "Протереть зеркало, выключатели и дверные ручки",
+        "Разобрать визуальный шум на полке для ключей, чеки и спам",
+        "Почистить коврик у двери и протереть пол под ним",
+        "Провести ревизию в сумках и рюкзаках, выбросить мусор",
+        "Протереть межкомнатные двери и плинтусы от пыли"
+      ]
+    },
+    {
+      "week": 2,
+      "zone": "Кухня",
+      "emoji": "🍳",
+      "tasks": [
+        "Натереть раковину до блеска и очистить зону вокруг нее",
+        "Провести ревизию в холодильнике, выкинув просрочку и соусы",
+        "Очистить микроволновку изнутри и протереть чайник",
+        "Разобрать один ящик со столовыми приборами или кружками",
+        "Проверить сроки годности у круп, специй и макарон",
+        "Протереть кухонные фасады в местах захвата руками",
+        "Сменить прихватки и отправить кухонные полотенца в стирку"
+      ]
+    },
+    {
+      "week": 3,
+      "zone": "Ванная и Туалет",
+      "emoji": "🧼",
+      "tasks": [
+        "Очистить краны и смесители от известкового налета",
+        "Навести порядок на полочке у зеркала, выкинув пустые тюбики",
+        "Протереть унитаз, бачок и кнопку смыва с дезинфектором",
+        "Разобрать аптечку или запасы бытовой химии под раковиной",
+        "Протереть стиральную машину, очистить лоток и манжету",
+        "Постирать коврик для ванной и освежить шторку",
+        "Очистить стаканчик для щеток и вентиляционную решетку"
+      ]
+    },
+    {
+      "week": 4,
+      "zone": "Спальня и Гостиная",
+      "emoji": "🛌",
+      "tasks": [
+        "Расхламить «стул-вешалку» или кресло с вещами",
+        "Протереть пыль на телевизоре, мониторах и подоконниках",
+        "Навести порядок в одном ящике с комода (носки, белье или декор)",
+        "Разобрать журнальный столик или прикроватную тумбочку",
+        "Взбить диванные подушки, постирать плед или покрывало",
+        "Провести ревизию домашней одежды или украшений в шкатулке",
+        "Собрать по комнате и безжалостно выбросить 27 элементов хлама"
+      ]
+    },
+    {
+      "week": 5,
+      "zone": "Балкон и Хобби-зоны",
+      "emoji": "📦",
+      "tasks": [
+        "Разобрать «горячую точку» на балконе или лоджии",
+        "Проверить полки с настольными играми, книгами или наборами",
+        "Очистить память телефона или компьютера от скриншотов",
+        "Протереть подоконники и полить все комнатные растения",
+        "Собрать макулатуру, старые журналы и коробки на выброс",
+        "Убрать вещи, которые ждут мелкого ремонта (пуговицы, замки)",
+        "Устроить свидание с собой: зажечь свечу и 15 минут посидеть"
+      ]
+    }
+  ];
+
+  // Маппинг SVG-комнат на недели в нашем массиве
   const roomMapping = {
-    'hallway': { week: 1, name: 'Прихожая и Коридор' },
-    'kitchen': { week: 2, name: 'Кухня' },
-    'bathroom': { week: 3, name: 'Ванная и Туалет' },
-    'bedroom': { week: 4, name: 'Спальня и Гостиная' },
-    'living_room': { week: 4, name: 'Спальня и Гостиная' },
-    'balcony': { week: 5, name: 'Балкон и Хобби-зоны (Уютные хвостики месяца)' }
+    'hallway': { week: 1 },
+    'kitchen': { week: 2 },
+    'bathroom': { week: 3 },
+    'bedroom': { week: 4 },
+    'living_room': { week: 4 } // Делят один список
   };
 
   const dom = {
@@ -20,11 +99,12 @@
     checklistContainer: document.getElementById('checklist-container')
   };
 
+  // 1. INITIALIZATION
   function init() {
     bindEvents();
     checkAllRooms24HoursTTL();
     updateMapHighlights();
-    selectRoom(activeRoomId);
+    selectRoom(activeRoomId); // Отрисовываем дефолтную комнату
   }
 
   function bindEvents() {
@@ -45,6 +125,7 @@
     });
   }
 
+  // 2. LOGIC: 24-HOUR TIME TO LIVE (TTL)
   function checkRoomTTL(roomId) {
     const timestampKey = `map_timestamp_${roomId}`;
     const stateKey = `map_state_${roomId}`;
@@ -62,13 +143,14 @@
   }
 
   function checkAllRooms24HoursTTL() {
-    const rooms = ['kitchen', 'bathroom', 'bedroom', 'hallway', 'living_room', 'balcony'];
-    rooms.forEach(room => checkRoomTTL(room));
+    Object.keys(roomMapping).forEach(room => checkRoomTTL(room));
   }
 
-  async function selectRoom(roomId) {
+  // 3. SYNCHRONOUS RENDER LOGIC
+  function selectRoom(roomId) {
     activeRoomId = roomId;
 
+    // Подсветка ободка активной комнаты
     dom.roomPaths.forEach(path => path.classList.remove('active-room'));
     const currentPath = document.getElementById(`room-${roomId}`);
     if (currentPath) currentPath.classList.add('active-room');
@@ -76,35 +158,21 @@
     const config = roomMapping[roomId];
     if (!config) return;
 
-    dom.roomNameHeader.textContent = `Загрузка задач для: ${config.name}...`;
+    // Ищем данные прямо в локальном массиве (без всяких fetch)
+    const weekData = MONTH_TASKS_DATA.find(item => item.week === config.week);
 
-    try {
-      const response = await fetch('/monthTasks.json');
-      if (!response.ok) throw new Error('Не удалось загрузить задачи');
-
-      const monthTasks = await response.json();
-
-      const weekData = monthTasks.find(item => item.week === config.week);
-
-      if (!weekData || !weekData.tasks) {
-        dom.roomNameHeader.textContent = "Задачи не найдены";
-        dom.checklistContainer.innerHTML = `<p style="text-align:center; padding-top:50px; color:#94a3b8;">Нет текущих задач</p>`;
-        return;
-      }
-
-      dom.roomNameHeader.textContent = `${weekData.emoji} ${weekData.zone}`;
-      renderChecklist(roomId, weekData.tasks);
-
-    } catch (error) {
-      console.error(error);
-      dom.roomNameHeader.textContent = "Ошибка загрузки";
-      dom.checklistContainer.innerHTML = `<p style="text-align:center; padding-top:50px; color:#ef4444;">Не удалось загрузить monthTasks.json</p>`;
+    if (!weekData) {
+      dom.roomNameHeader.textContent = "Задачи не найдены";
+      dom.checklistContainer.innerHTML = '';
+      return;
     }
+
+    dom.roomNameHeader.textContent = `${weekData.emoji} ${weekData.zone}`;
+    renderChecklist(roomId, weekData.tasks);
   }
 
   function renderChecklist(roomId, tasks) {
     dom.checklistContainer.innerHTML = '';
-
     const savedState = JSON.parse(localStorage.getItem(`map_state_${roomId}`) || '{}');
 
     tasks.forEach((taskText, index) => {
@@ -131,6 +199,7 @@
     });
   }
 
+  // 4. LOGIC: TOGGLE & LOCALSTORAGE
   function toggleTask(roomId, taskIndex, taskItemElement, totalTasksCount) {
     const checkbox = taskItemElement.querySelector('input[type="checkbox"]');
     const isChecked = checkbox.checked;
@@ -165,30 +234,34 @@
       localStorage.removeItem(timestampKey);
     }
 
-    updateMapHighlights(totalTasksCount);
+    updateMapHighlights();
 
+    // Проверяем 100% выполнение комнаты
     if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0) {
       triggerHaptic('success');
       fireConfetti();
     }
   }
 
-  function updateMapHighlights(currentRoomTotalCount = 0) {
+  // 5. MAP REACTION (HIGHLIGHTS)
+  function updateMapHighlights() {
     Object.keys(roomMapping).forEach(roomId => {
       const path = document.getElementById(`room-${roomId}`);
       if (!path) return;
+
+      const config = roomMapping[roomId];
+      const weekData = MONTH_TASKS_DATA.find(item => item.week === config.week);
+      const totalCount = weekData ? weekData.tasks.length : 7;
 
       const savedState = JSON.parse(localStorage.getItem(`map_state_${roomId}`) || '{}');
       const checkedCount = Object.keys(savedState).length;
 
       path.classList.remove('status-progress', 'status-clean');
 
-      const totalCount = (roomId === activeRoomId && currentRoomTotalCount > 0) ? currentRoomTotalCount : 7;
-
       if (checkedCount > 0 && checkedCount < totalCount) {
-        path.classList.add('status-progress');
-      } else if (checkedCount === totalCount) {
-        path.classList.add('status-clean');
+        path.classList.add('status-progress'); // В процессе (желтый)
+      } else if (checkedCount === totalCount && totalCount > 0) {
+        path.classList.add('status-clean'); // Чисто (зеленый)
       }
     });
   }
