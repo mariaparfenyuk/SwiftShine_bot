@@ -19,8 +19,62 @@
       <div class="menu-grid">
         <button class="btn-menu-item" onclick="switchScreen('timer')">⏱ Таймер дня (15 минут)</button>
         <button class="btn-menu-item" onclick="switchScreen('roulette')">🎰 Слот-машина по зонам</button>
+        <button class="btn-menu-item" id="btn-go-map" onclick="switchScreen('map')">
+          <span>🗺️ План квартиры</span>
+          <span>→</span>
+        </button>
       </div>
     </div>
+
+    <div id="screen-map" class="hidden">
+  <h2 class="menu-title">План квартиры</h2>
+  <p>Выбери комнату на схеме и отметь выполненные задачи</p>
+
+  <div class="map-container">
+    <svg viewBox="0 0 400 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <g class="room-group" data-room="hallway">
+        <rect id="room-hallway" class="room-path" x="10" y="10" width="100" height="180" rx="8"/>
+        <text class="room-label" x="60" y="100">Прихожая</text>
+      </g>
+      
+      <g class="room-group" data-room="bathroom">
+        <rect id="room-bathroom" class="room-path" x="120" y="10" width="110" height="100" rx="8"/>
+        <text class="room-label" x="175" y="60">Ванная</text>
+      </g>
+
+      <g class="room-group" data-room="kitchen">
+        <rect id="room-kitchen" class="room-path" x="240" y="10" width="150" height="100" rx="8"/>
+        <text class="room-label" x="315" y="60">Кухня</text>
+      </g>
+
+      <g class="room-group" data-room="bedroom">
+        <rect id="room-bedroom" class="room-path" x="120" y="120" width="130" height="170" rx="8"/>
+        <text class="room-label" x="185" y="210">Спальня</text>
+      </g>
+
+      <g class="room-group" data-room="living_room">
+        <rect id="room-living_room" class="room-path" x="260" y="120" width="130" height="170" rx="8"/>
+        <text class="room-label" x="325" y="210">Гостиная</text>
+      </g>
+    </svg>
+    <g class="room-group" data-room="balcony">
+  <rect id="room-balcony" class="room-path" x="240" y="120" width="15" height="100" rx="4"/>
+  <text class="room-label" x="247" y="170" style="writing-mode: tb;">Балкон</text>
+</g>
+  </div>
+
+  <div class="checklist-title">
+    <span id="selected-room-name">Выберите комнату на карте</span>
+  </div>
+  
+  <div class="checklist-scroll-box" id="checklist-container">
+    <p style="text-align: center; color: #94a3b8; margin-top: 70px;">Здесь появятся задачи</p>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button class="btn-menu-item" onclick="switchScreen('menu')">← Назад в меню</button>
+  </div>
+</div>
 
     <div id="screen-timer" style="display: none;">
       <div class="timer-box">
@@ -81,6 +135,7 @@
       document.getElementById('screen-menu').style.display = 'none';
       document.getElementById('screen-timer').style.display = 'none';
       document.getElementById('screen-roulette').style.display = 'none';
+      document.getElementById('screen-map').style.display = 'none';
 
       if (screenName === 'menu') {
         document.getElementById('screen-menu').style.display = 'block';
@@ -88,13 +143,18 @@
         document.getElementById('screen-timer').style.display = 'block';
       } else if (screenName === 'roulette') {
         document.getElementById('screen-roulette').style.display = 'block';
+      } else if (screenName === 'map') {
+        document.getElementById('screen-map').style.display = 'block';
       }
     }
     switchScreen('menu');
   </script>
   
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script src="js/tasks.js"></script>
 <script src="js/times.js"></script>
 <script src="js/slot-machine.js"></script>
+<script src="js/home-map.js"></script>
 </body>
 </html>
