@@ -97,6 +97,7 @@
 
     if (profileImg) {
       profileImg.className = `profile-avatar lvl-${info.level}`;
+      profileImg.src = `img/rank-${info.level}.png`;
     }
   }
 
