@@ -61,7 +61,9 @@
       <div class="level-popup-content">
         <h2>🎉 Новый ранг!</h2>
         <p>Поздравляем! Твой уровень чистоты вырос!</p>
-        <div class="level-popup-rank">${rankInfo.name}</div>
+        <div class="level-popup-rank" style="cursor: pointer; border: 1px dashed #2563eb; color: #2563eb; background: #f1f5f9; display: inline-block; padding: 10px 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 700;" title="Посмотреть в профиле">
+          ${rankInfo.name} 🔍
+        </div>
         <button class="level-popup-btn">Погнали дальше 🚀</button>
       </div>
     `;
@@ -70,6 +72,13 @@
 
     popup.querySelector('.level-popup-btn').addEventListener('click', () => {
       popup.remove();
+    });
+
+    popup.querySelector('.level-popup-rank').addEventListener('click', () => {
+      popup.remove();
+      if (typeof window.switchScreen === 'function') {
+        window.switchScreen('profile');
+      }
     });
   }
 
