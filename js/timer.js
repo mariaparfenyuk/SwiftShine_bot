@@ -1,4 +1,4 @@
-const { MOTIVATORS } = require('./motivators');
+const MOTIVATORS = window.MOTIVATORS || [];
 
 (function () {
   'use strict';
