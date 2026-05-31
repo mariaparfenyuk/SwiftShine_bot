@@ -1,15 +1,9 @@
-/**
- * ARCHITECTURE: Home Map & Dynamic Checklist Module (Pure Frontend Version)
- * Handles: SVG Interaction <---> Static JSON Data <---> LocalStorage (24h TTL)
- */
-
 (function () {
   'use strict';
 
   const tg = window.Telegram?.WebApp;
-  let activeRoomId = 'kitchen'; // По умолчанию фокусим кухню
+  let activeRoomId = 'kitchen';
 
-  // ХАРДКОД БАЗЫ ДАННЫХ (Твой monthTasks.json переехал прямо сюда)
   const MONTH_TASKS_DATA = [
     {
       "week": 1,
@@ -83,13 +77,13 @@
     }
   ];
 
-  // Маппинг SVG-комнат на недели в нашем массиве
   const roomMapping = {
     'hallway': { week: 1 },
     'kitchen': { week: 2 },
     'bathroom': { week: 3 },
     'bedroom': { week: 4 },
-    'living_room': { week: 4 } // Делят один список
+    'living_room': { week: 4 },
+    'balcony': { week: 5 }
   };
 
   const dom = {
@@ -99,12 +93,11 @@
     checklistContainer: document.getElementById('checklist-container')
   };
 
-  // 1. INITIALIZATION
   function init() {
     bindEvents();
     checkAllRooms24HoursTTL();
     updateMapHighlights();
-    selectRoom(activeRoomId); // Отрисовываем дефолтную комнату
+    selectRoom(activeRoomId);
   }
 
   function bindEvents() {
@@ -125,7 +118,6 @@
     });
   }
 
-  // 2. LOGIC: 24-HOUR TIME TO LIVE (TTL)
   function checkRoomTTL(roomId) {
     const timestampKey = `map_timestamp_${roomId}`;
     const stateKey = `map_state_${roomId}`;
@@ -146,11 +138,9 @@
     Object.keys(roomMapping).forEach(room => checkRoomTTL(room));
   }
 
-  // 3. SYNCHRONOUS RENDER LOGIC
   function selectRoom(roomId) {
     activeRoomId = roomId;
 
-    // Подсветка ободка активной комнаты
     dom.roomPaths.forEach(path => path.classList.remove('active-room'));
     const currentPath = document.getElementById(`room-${roomId}`);
     if (currentPath) currentPath.classList.add('active-room');
@@ -158,7 +148,6 @@
     const config = roomMapping[roomId];
     if (!config) return;
 
-    // Ищем данные прямо в локальном массиве (без всяких fetch)
     const weekData = MONTH_TASKS_DATA.find(item => item.week === config.week);
 
     if (!weekData) {
@@ -199,7 +188,6 @@
     });
   }
 
-  // 4. LOGIC: TOGGLE & LOCALSTORAGE
   function toggleTask(roomId, taskIndex, taskItemElement, totalTasksCount) {
     const checkbox = taskItemElement.querySelector('input[type="checkbox"]');
     const isChecked = checkbox.checked;
@@ -236,14 +224,12 @@
 
     updateMapHighlights();
 
-    // Проверяем 100% выполнение комнаты
     if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0) {
       triggerHaptic('success');
       fireConfetti();
     }
   }
 
-  // 5. MAP REACTION (HIGHLIGHTS)
   function updateMapHighlights() {
     Object.keys(roomMapping).forEach(roomId => {
       const path = document.getElementById(`room-${roomId}`);
@@ -259,9 +245,9 @@
       path.classList.remove('status-progress', 'status-clean');
 
       if (checkedCount > 0 && checkedCount < totalCount) {
-        path.classList.add('status-progress'); // В процессе (желтый)
+        path.classList.add('status-progress');
       } else if (checkedCount === totalCount && totalCount > 0) {
-        path.classList.add('status-clean'); // Чисто (зеленый)
+        path.classList.add('status-clean');
       }
     });
   }
