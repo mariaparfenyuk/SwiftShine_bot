@@ -1,9 +1,15 @@
+/**
+ * ARCHITECTURE: Home Map, Dynamic Checklist & Gamification Module
+ * Handles: SVG Interaction <---> Static JSON Data <---> LocalStorage (Month TTL + XP Integration)
+ */
+
 (function () {
   'use strict';
 
   const tg = window.Telegram?.WebApp;
-  let activeRoomId = 'kitchen';
+  let activeRoomId = 'kitchen'; // По умолчанию фокусим кухню
 
+  // ХАРДКОД БАЗЫ ДАННЫХ (Твой monthTasks.json)
   const MONTH_TASKS_DATA = [
     {
       "week": 1,
@@ -15,7 +21,7 @@
         "Протереть зеркало, выключатели и дверные ручки",
         "Разобрать визуальный шум на полке для ключей, чеки и спам",
         "Почистить коврик у двери и протереть пол под ним",
-        "Провести ревизию в сумках и рюкзаках, выбросить мусор",
+        "Провести ревизию в сущках и рюкзаках, выбросить мусор",
         "Протереть межкомнатные двери и плинтусы от пыли"
       ]
     },
@@ -128,6 +134,7 @@
     const savedDate = new Date(parseInt(savedTimestamp, 10));
     const currentDate = new Date();
 
+
     if (savedDate.getFullYear() !== currentDate.getFullYear() || savedDate.getMonth() !== currentDate.getMonth()) {
       localStorage.removeItem(timestampKey);
       localStorage.removeItem(stateKey);
@@ -195,9 +202,17 @@
     if (isChecked) {
       taskItemElement.classList.add('checked');
       triggerHaptic('light');
+
+      if (window.Gamification) {
+        window.Gamification.addXP(15);
+      }
     } else {
       taskItemElement.classList.remove('checked');
       triggerHaptic('medium');
+
+      if (window.Gamification) {
+        window.Gamification.addXP(-15);
+      }
     }
 
     const stateKey = `map_state_${roomId}`;
@@ -227,6 +242,10 @@
     if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0) {
       triggerHaptic('success');
       fireConfetti();
+
+      if (window.Gamification) {
+        window.Gamification.addXP(50);
+      }
     }
   }
 
@@ -237,7 +256,6 @@
 
       const config = roomMapping[roomId];
       const weekData = MONTH_TASKS_DATA.find(item => item.week === config.week);
-
       const totalCount = weekData ? weekData.tasks.length : 7;
 
       const savedState = JSON.parse(localStorage.getItem(`map_state_${roomId}`) || '{}');

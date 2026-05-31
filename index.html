@@ -12,7 +12,36 @@
 <body>
 
   <div class="container">
+    <div class="container">
     
+    <div class="header-xp-widget">
+      <button class="coin-btn" onclick="switchScreen('profile')" aria-label="Открыть профиль">
+        <img src="img/coin.svg" alt="XP" class="coin-icon">
+      </button>
+      <span class="xp-text" id="xp-header-text">Lvl 1 • 0/100 XP</span>
+    </div>
+
+    <div id="screen-profile" style="display: none;">
+      <div class="profile-header">
+        <button class="close-profile-btn" onclick="switchScreen('menu')">✕</button>
+      </div>
+      
+      <div class="profile-content">
+        <div class="avatar-container">
+          <img id="profile-rank-img" src="img/rank-1.png" alt="Ранг" class="profile-avatar lvl-1">
+        </div>
+        
+        <h2 class="profile-rank-title" id="profile-rank-title">Уставший кабачок 🥬</h2>
+        
+        <div class="profile-progress-container">
+          <div class="profile-progress-track">
+            <div class="profile-progress-bar" id="profile-progress-bar" style="width: 0%;"></div>
+          </div>
+          <div class="profile-xp-counter" id="profile-xp-text">0 / 100 XP (Всего накоплено)</div>
+        </div>
+      </div>
+    </div>
+
     <div id="screen-menu">
       <h2 class="menu-title">Центр Управления Чистотой</h2>
       <div class="menu-grid">
@@ -136,6 +165,7 @@
       document.getElementById('screen-timer').style.display = 'none';
       document.getElementById('screen-roulette').style.display = 'none';
       document.getElementById('screen-map').style.display = 'none';
+      document.getElementById('screen-profile').style.display = 'none'; 
 
       const target = document.getElementById(`screen-${screenName}`);
       if (target) {
@@ -149,6 +179,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="js/tasks.js"></script>
   <script src="js/timer.js"></script>
+  <script src="js/gamification.js"></script>
   <script src="js/slot-machine.js"></script>
   <script src="js/home-map.js?v=3"></script>
 </body>

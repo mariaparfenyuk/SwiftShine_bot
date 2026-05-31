@@ -124,7 +124,15 @@ bot.catch((err, ctx) => {
 });
 const app = express();
 
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  setHeaders: (res, filePath) => {
+    if (filePath.includes(path.join(__dirname, 'img'))) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      res.set('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 app.get('/api/month-tasks', (req, res) => {
   res.json(monthTasksData);
