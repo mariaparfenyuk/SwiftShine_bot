@@ -34,19 +34,28 @@
     };
   }
 
-  function addXP(amount) {
-    const oldXp = getXP();
-    const newXp = oldXp + amount;
-    setXP(newXp);
-
+  function _checkLevelUp(oldXp, newXp) {
     const oldRank = getRankInfo(oldXp);
     const newRank = getRankInfo(newXp);
-
-    updateUI();
-
     if (newRank.level > oldRank.level) {
       triggerLevelUp(newRank);
     }
+  }
+
+  function addXP(amount) {
+    const oldXp = getXP();
+    let currentXp = oldXp + amount;
+
+    if (currentXp < 0) {
+      currentXp = 0;
+    }
+
+    setXP(currentXp);
+
+    if (amount > 0) {
+      _checkLevelUp(oldXp, currentXp);
+    }
+    updateUI();
   }
 
   function triggerLevelUp(rankInfo) {
