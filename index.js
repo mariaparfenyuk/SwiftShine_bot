@@ -122,13 +122,16 @@ bot.catch((err, ctx) => {
   console.error(`Telegraf caught an error: ${err.message}`);
   ctx.reply(messages.ERROR, keyboards.main);
 });
-
 const app = express();
 
 app.use(express.static(__dirname));
 
+app.get('/api/month-tasks', (req, res) => {
+  res.json(monthTasksData);
+});
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 bot.launch().then(() => {

@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="css/style.css">
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/input.min.js"></script>
 </head>
 <body>
 
@@ -26,55 +25,56 @@
       </div>
     </div>
 
-    <div id="screen-map" class="hidden">
-  <h2 class="menu-title">План квартиры</h2>
-  <p>Выбери комнату на схеме и отметь выполненные задачи</p>
+    <div id="screen-map" style="display: none;">
+      <h2 class="menu-title">План квартиры</h2>
+      <p style="text-align: center; color: #475569; margin-bottom: 15px;">Выбери комнату на схеме и отметь выполненные задачи</p>
 
-  <div class="map-container">
-    <svg viewBox="0 0 400 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <g class="room-group" data-room="hallway">
-        <rect id="room-hallway" class="room-path" x="10" y="10" width="100" height="180" rx="8"/>
-        <text class="room-label" x="60" y="100">Прихожая</text>
-      </g>
+      <div class="map-container">
+        <svg viewBox="0 0 400 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <g class="room-group" data-room="hallway">
+            <rect id="room-hallway" class="room-path" x="10" y="10" width="100" height="180" rx="8"/>
+            <text class="room-label" x="60" y="100">Прихожая</text>
+          </g>
+          
+          <g class="room-group" data-room="bathroom">
+            <rect id="room-bathroom" class="room-path" x="120" y="10" width="110" height="100" rx="8"/>
+            <text class="room-label" x="175" y="60">Ванная</text>
+          </g>
+
+          <g class="room-group" data-room="kitchen">
+            <rect id="room-kitchen" class="room-path" x="240" y="10" width="150" height="100" rx="8"/>
+            <text class="room-label" x="315" y="60">Кухня</text>
+          </g>
+
+          <g class="room-group" data-room="bedroom">
+            <rect id="room-bedroom" class="room-path" x="120" y="120" width="130" height="170" rx="8"/>
+            <text class="room-label" x="185" y="210">Спальня</text>
+          </g>
+
+          <g class="room-group" data-room="living_room">
+            <rect id="room-living_room" class="room-path" x="260" y="120" width="130" height="170" rx="8"/>
+            <text class="room-label" x="325" y="210">Гостиная</text>
+          </g>
+
+          <g class="room-group" data-room="balcony">
+            <rect id="room-balcony" class="room-path" x="375" y="120" width="15" height="170" rx="4"/>
+            <text class="room-label" x="383" y="215" style="writing-mode: tb; font-size: 11px;">Балкон</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="checklist-title">
+        <span id="selected-room-name">Выберите комнату на карте</span>
+      </div>
       
-      <g class="room-group" data-room="bathroom">
-        <rect id="room-bathroom" class="room-path" x="120" y="10" width="110" height="100" rx="8"/>
-        <text class="room-label" x="175" y="60">Ванная</text>
-      </g>
+      <div class="checklist-scroll-box" id="checklist-container">
+        <p style="text-align: center; color: #94a3b8; margin-top: 70px;">Здесь появятся задачи</p>
+      </div>
 
-      <g class="room-group" data-room="kitchen">
-        <rect id="room-kitchen" class="room-path" x="240" y="10" width="150" height="100" rx="8"/>
-        <text class="room-label" x="315" y="60">Кухня</text>
-      </g>
-
-      <g class="room-group" data-room="bedroom">
-        <rect id="room-bedroom" class="room-path" x="120" y="120" width="130" height="170" rx="8"/>
-        <text class="room-label" x="185" y="210">Спальня</text>
-      </g>
-
-      <g class="room-group" data-room="living_room">
-        <rect id="room-living_room" class="room-path" x="260" y="120" width="130" height="170" rx="8"/>
-        <text class="room-label" x="325" y="210">Гостиная</text>
-      </g>
-    </svg>
-    <g class="room-group" data-room="balcony">
-  <rect id="room-balcony" class="room-path" x="240" y="120" width="15" height="100" rx="4"/>
-  <text class="room-label" x="247" y="170" style="writing-mode: tb;">Балкон</text>
-</g>
-  </div>
-
-  <div class="checklist-title">
-    <span id="selected-room-name">Выберите комнату на карте</span>
-  </div>
-  
-  <div class="checklist-scroll-box" id="checklist-container">
-    <p style="text-align: center; color: #94a3b8; margin-top: 70px;">Здесь появятся задачи</p>
-  </div>
-
-  <div style="margin-top: 20px;">
-    <button class="btn-menu-item" onclick="switchScreen('menu')">← Назад в меню</button>
-  </div>
-</div>
+      <div style="margin-top: 20px;">
+        <button class="btn-menu-item" onclick="switchScreen('menu')">← Назад в меню</button>
+      </div>
+    </div>
 
     <div id="screen-timer" style="display: none;">
       <div class="timer-box">
@@ -82,79 +82,74 @@
         <div class="timer-val" id="timer-display">15:00</div>
         <div class="motivator-box" id="motivator-text">Загрузка...</div>
         <div class="timer-controls">
-  <button id="btn-start" class="main-btn">Старт 🚀</button>
-  <button id="btn-pause" class="btn-pause hidden">Пауза ⏸</button>
-  <button id="btn-reset" class="btn-reset">Сбросить 🔄</button>
-  
-  <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 12px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
-</div>
+          <button id="btn-start" class="main-btn">Старт 🚀</button>
+          <button id="btn-pause" class="btn-pause hidden">Пауза ⏸</button>
+          <button id="btn-reset" class="btn-reset">Сбросить 🔄</button>
+          
+          <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 12px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
+        </div>
       </div>
       <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
     </div>
 
     <div id="screen-roulette" style="display: none;">
-  
-  <h2 style="color: #1e3a8a; text-align: center; margin-bottom: 8px;">Матрица Чистоты</h2>
-  
-  <p style="text-align: center; color: #475569; font-size: 15px; margin: 0 auto 20px auto; max-width: 320px; line-height: 1.4;">
-    Не знаешь, за что взяться? Положись на волю случая! Крути рулетку, получай быстрое задание по зоне и выполняй его за 15 минут.
-  </p>
-  
-  <div class="slot-wrapper">
-    <div class="slot-machine">
-      <div class="reel" id="reel-action"><div class="text-container" id="text-action">???</div></div>
-      <div class="reel" id="reel-quantity"><div class="text-container" id="text-quantity">???</div></div>
-      <div class="reel" id="reel-zone"><div class="text-container" id="text-zone">???</div></div>
-    </div>
-    <div class="visor-frame"></div>
-  </div>
-  
-  <div class="controls">
-    <button id="spin-btn" class="main-btn">Крутить рулетку</button>
-    <div id="action-block" class="action-block hidden">
-      <button id="go-btn" class="go-btn">Погнали! 🚀</button>
-      <div class="reroll-row">
-        <button id="reroll-btn" class="reroll-btn">Перекрутить 🔄</button>
-        <span class="counter" id="attempts-counter">Осталось попыток: 3</span>
+      <h2 style="color: #1e3a8a; text-align: center; margin-bottom: 8px;">Матрица Чистоты</h2>
+      
+      <p style="text-align: center; color: #475569; font-size: 15px; margin: 0 auto 20px auto; max-width: 320px; line-height: 1.4;">
+        Не знаешь, за что взяться? Положись на волю случая! Крути рулетку, получай быстрое задание по зоне и выполняй его за 15 минут.
+      </p>
+      
+      <div class="slot-wrapper">
+        <div class="slot-machine">
+          <div class="reel" id="reel-action"><div class="text-container" id="text-action">???</div></div>
+          <div class="reel" id="reel-quantity"><div class="text-container" id="text-quantity">???</div></div>
+          <div class="reel" id="reel-zone"><div class="text-container" id="text-zone">???</div></div>
+        </div>
+        <div class="visor-frame"></div>
+      </div>
+      
+      <div class="controls">
+        <button id="spin-btn" class="main-btn">Крутить рулетку</button>
+        <div id="action-block" class="action-block hidden">
+          <button id="go-btn" class="go-btn">Погнали! 🚀</button>
+          <div class="reroll-row">
+            <button id="reroll-btn" class="reroll-btn">Перекрутить 🔄</button>
+            <span class="counter" id="attempts-counter">Осталось попыток: 3</span>
+          </div>
+        </div>
+        
+        <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 24px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
       </div>
     </div>
-    
-    <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 24px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
+
   </div>
-</div>
 
   <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
+    const telegramApp = window.Telegram?.WebApp;
+    if (telegramApp) {
+      telegramApp.ready();
+      telegramApp.expand();
     }
 
     function switchScreen(screenName) {
-      document.getElementById('screen-menu').style.build = 'none';
       document.getElementById('screen-menu').style.display = 'none';
       document.getElementById('screen-timer').style.display = 'none';
       document.getElementById('screen-roulette').style.display = 'none';
       document.getElementById('screen-map').style.display = 'none';
 
-      if (screenName === 'menu') {
-        document.getElementById('screen-menu').style.display = 'block';
-      } else if (screenName === 'timer') {
-        document.getElementById('screen-timer').style.display = 'block';
-      } else if (screenName === 'roulette') {
-        document.getElementById('screen-roulette').style.display = 'block';
-      } else if (screenName === 'map') {
-        document.getElementById('screen-map').style.display = 'block';
+      const target = document.getElementById(`screen-${screenName}`);
+      if (target) {
+        target.style.display = 'block';
       }
     }
+    
     switchScreen('menu');
   </script>
   
-
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-<script src="js/tasks.js"></script>
-<script src="js/timer.js"></script>
-<script src="js/slot-machine.js"></script>
-<script src="js/home-map.js?v=2"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/slot-machine.js"></script>
+  <script src="js/home-map.js?v=3"></script>
 </body>
 </html>
