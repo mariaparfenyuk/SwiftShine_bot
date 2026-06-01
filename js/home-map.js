@@ -1,15 +1,9 @@
-/**
- * ARCHITECTURE: Home Map, Dynamic Checklist & Gamification Module
- * Handles: SVG Interaction <---> Static JSON Data <---> LocalStorage (Month TTL + XP Integration)
- */
-
 (function () {
   'use strict';
 
   const tg = window.Telegram?.WebApp;
-  let activeRoomId = 'kitchen'; // По умолчанию фокусим кухню
+  let activeRoomId = 'kitchen';
 
-  // ХАРДКОД БАЗЫ ДАННЫХ (Твой monthTasks.json)
   const MONTH_TASKS_DATA = [
     {
       "week": 1,
@@ -199,6 +193,13 @@
     const checkbox = taskItemElement.querySelector('input[type="checkbox"]');
     const isChecked = checkbox.checked;
 
+    const stateKey = `map_state_${roomId}`;
+    const timestampKey = `map_timestamp_${roomId}`;
+
+    const savedState = JSON.parse(localStorage.getItem(stateKey) || '{}');
+    const wasAlreadyClean = Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0;
+    const isFirstCheck = Object.keys(savedState).length === 0 && isChecked;
+
     if (isChecked) {
       taskItemElement.classList.add('checked');
       triggerHaptic('light');
@@ -206,6 +207,7 @@
       if (window.Gamification) {
         window.Gamification.addXP(15);
       }
+      savedState[taskIndex] = true;
     } else {
       taskItemElement.classList.remove('checked');
       triggerHaptic('medium');
@@ -213,17 +215,6 @@
       if (window.Gamification) {
         window.Gamification.addXP(-15);
       }
-    }
-
-    const stateKey = `map_state_${roomId}`;
-    const timestampKey = `map_timestamp_${roomId}`;
-
-    const savedState = JSON.parse(localStorage.getItem(stateKey) || '{}');
-    const isFirstCheck = Object.keys(savedState).length === 0 && isChecked;
-
-    if (isChecked) {
-      savedState[taskIndex] = true;
-    } else {
       delete savedState[taskIndex];
     }
 
@@ -239,7 +230,7 @@
 
     updateMapHighlights();
 
-    if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0) {
+    if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0 && !wasAlreadyClean) {
       triggerHaptic('success');
       fireConfetti();
 
