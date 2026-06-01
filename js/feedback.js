@@ -65,9 +65,6 @@
   }
 
   function validateForm() {
-  }
-
-  function validateForm() {
     if (selectedRating === 0) {
       dom.sendBtn.disabled = true;
       return;
