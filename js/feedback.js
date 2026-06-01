@@ -90,7 +90,6 @@
       }
     }
   }
-
   async function sendFeedback() {
     dom.sendBtn.disabled = true;
     dom.sendBtn.textContent = "Отправка... ⏳";
@@ -98,66 +97,53 @@
     const user = tg?.initDataUnsafe?.user || { id: 'Локальный тест', first_name: 'Разработчик', username: 'test_user' };
     const textReview = dom.textarea.value.trim();
 
+    // Собираем данные в объект (проверь, чтобы названия полей совпадали с тем, что ждет бэкенд!)
+    const feedbackData = {
+      rating: selectedRating, // убедись, что глобальная переменнаяselectedRating доступна в файле
+      user: user,
+      text: textReview
+    };
+
     try {
+      // Чистый await запрос к бэкенду
       const response = await fetch(BACKEND_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rating: selectedRating,
-          user: user,
-          text: textReview
-        })
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // Пробиваем заглушку ngrok 🚀
+        },
+        body: JSON.stringify(feedbackData)
       });
 
-      if (response.ok) {
-        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        localStorage.setItem('app_feedback_submitted', 'true');
-
-        dom.sendBtn.style.background = '#22c55e';
-        dom.sendBtn.textContent = "Спасибо за отзыв! ❤️";
-
-        setTimeout(() => {
-          resetForm();
-          if (typeof window.switchScreen === 'function') {
-            window.switchScreen('main');
-          }
-          checkExistingFeedback();
-        }, 2000);
-
-      } else {
-        throw new Error('Server error');
+      // Если сервер вернул ошибку (например, 400 или 500)
+      if (!response.ok) {
+        throw new Error('Ошибка сервера');
       }
+
+      // Если всё успешно, парсим JSON (если бэкенд что-то возвращает)
+      const data = await response.json();
+
+      // Логика успешного выполнения
+      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      localStorage.setItem('app_feedback_submitted', 'true');
+
+      dom.sendBtn.style.background = '#22c55e';
+      dom.sendBtn.textContent = "Спасибо за отзыв! ❤️";
+
+      setTimeout(() => {
+        resetForm();
+        if (typeof window.switchScreen === 'function') {
+          window.switchScreen('main');
+        }
+        checkExistingFeedback();
+      }, 2000);
+
     } catch (error) {
+      console.error('Ошибка при отправке:', error);
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
       alert('Ошибка отправки. Попробуй еще раз! 🤖');
       dom.sendBtn.disabled = false;
       dom.sendBtn.textContent = "Отправить отзыв";
     }
   }
-
-  function resetForm() {
-    selectedRating = 0;
-    dom.textarea.value = '';
-    dom.stars.forEach(star => star.classList.remove('active'));
-    dom.formBlock?.classList.remove('show');
-    dom.sendBtn.style.background = '#2563eb';
-    dom.sendBtn.textContent = "Отправить отзыв";
-    dom.sendBtn.disabled = true;
-  }
-
-  function checkExistingFeedback() {
-    const isSubmitted = localStorage.getItem('app_feedback_submitted') === 'true';
-    const menuBtn = document.getElementById('menu-btn-feedback');
-
-    if (menuBtn) {
-      if (isSubmitted) {
-        menuBtn.innerHTML = "✏️ Изменить отзыв";
-      } else {
-        menuBtn.innerHTML = "⭐ Оценить нас";
-      }
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', init);
-
 })();
