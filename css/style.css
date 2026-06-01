@@ -640,7 +640,6 @@ p {
   background: #1d4ed8;
 }
 
-/* Анимации */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -649,4 +648,133 @@ p {
 @keyframes scaleUp {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================================
+   FEEDBACK SCREEN STYLES
+   ========================================================================== */
+
+.feedback-container {
+  padding: 16px;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.feedback-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.feedback-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.feedback-instruction {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+/* Звезды рейтинга */
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.star {
+  font-size: 36px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.star.active {
+  color: #eab308; /* Желтый цвет для активных звезд */
+}
+
+.star:active {
+  transform: scale(1.2);
+}
+
+/* Блок текстового отзыва с плавной анимацией появления */
+.feedback-form-block {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+/* Класс .show добавляется через JavaScript при клике на звезды */
+.feedback-form-block.show {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 10px;
+}
+
+.feedback-form-block textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.feedback-form-block textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.feedback-error-msg {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.feedback-submit-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feedback-submit-btn:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
