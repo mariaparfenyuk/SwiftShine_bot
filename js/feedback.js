@@ -57,10 +57,14 @@
     if (value === 5) {
       dom.textarea.placeholder = "Напишите пару добрых слов (необязательно) 🥰";
     } else {
-      dom.textarea.placeholder = "Что мы можем улучшить? (минимум 10 символов) ✍️";
+      dom.textarea.placeholder = "Что мы можем улучшить? (необязательно) ✍️";
     }
 
-    validateForm();
+    dom.sendBtn.disabled = false;
+    dom.errorMsg?.classList.add('hidden');
+  }
+
+  function validateForm() {
   }
 
   function validateForm() {
