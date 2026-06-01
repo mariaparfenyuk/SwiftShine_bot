@@ -182,14 +182,14 @@
           const checkbox = taskItem.querySelector('input[type="checkbox"]');
           checkbox.checked = !checkbox.checked;
         }
-        toggleTask(roomId, index, taskItem, tasks.length);
+        toggleTask(roomId, index, taskItem, tasks.length, false);
       });
 
       dom.checklistContainer.appendChild(taskItem);
     });
   }
 
-  function toggleTask(roomId, taskIndex, taskItemElement, totalTasksCount) {
+  function toggleTask(roomId, taskIndex, taskItemElement, totalTasksCount, isInitialLoad = false) {
     const checkbox = taskItemElement.querySelector('input[type="checkbox"]');
     const isChecked = checkbox.checked;
 
@@ -202,18 +202,23 @@
 
     if (isChecked) {
       taskItemElement.classList.add('checked');
-      triggerHaptic('light');
 
-      if (window.Gamification) {
-        window.Gamification.addXP(15);
+      // Начисляем XP и вибрируем ТОЛЬКО если это не авто-загрузка при старте
+      if (!isInitialLoad) {
+        triggerHaptic('light');
+        if (window.Gamification) {
+          window.Gamification.addXP(15);
+        }
       }
       savedState[taskIndex] = true;
     } else {
       taskItemElement.classList.remove('checked');
-      triggerHaptic('medium');
 
-      if (window.Gamification) {
-        window.Gamification.addXP(-15);
+      if (!isInitialLoad) {
+        triggerHaptic('medium');
+        if (window.Gamification) {
+          window.Gamification.addXP(-15);
+        }
       }
       delete savedState[taskIndex];
     }
@@ -230,7 +235,7 @@
 
     updateMapHighlights();
 
-    if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0 && !wasAlreadyClean) {
+    if (Object.keys(savedState).length === totalTasksCount && totalTasksCount > 0 && !wasAlreadyClean && !isInitialLoad) {
       triggerHaptic('success');
       fireConfetti();
 
