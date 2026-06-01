@@ -4,7 +4,7 @@
   const tg = window.Telegram?.WebApp;
   let selectedRating = 0;
 
-  const BACKEND_URL = '/api/feedback';
+  const BACKEND_URL = 'https://decorator-litmus-grouped.ngrok-free.dev/api/feedback';
 
   const dom = {
     stars: document.querySelectorAll('#rating-stars-container .star'),
