@@ -54,73 +54,72 @@
 
     dom.formBlock?.classList.add('show');
 
-    if (value === 5) {
-      dom.textarea.placeholder = "Напишите пару добрых слов (необязательно) 🥰";
-    } else {
-      dom.textarea.placeholder = "Что мы можем улучшить? (необязательно) ✍️";
+    if (dom.textarea) {
+      if (value === 5) {
+        dom.textarea.placeholder = "Напишите пару добрых слов (необязательно) 🥰";
+      } else {
+        dom.textarea.placeholder = "Что мы можем улучшить? (необязательно) ✍️";
+      }
     }
 
-    dom.sendBtn.disabled = false;
+    if (dom.sendBtn) dom.sendBtn.disabled = false;
     dom.errorMsg?.classList.add('hidden');
   }
 
   function validateForm() {
     if (selectedRating === 0) {
-      dom.sendBtn.disabled = true;
+      if (dom.sendBtn) dom.sendBtn.disabled = true;
       return;
     }
 
-    const text = dom.textarea.value.trim();
+    const text = dom.textarea ? dom.textarea.value.trim() : '';
 
     if (selectedRating === 5) {
-      dom.sendBtn.disabled = false;
+      if (dom.sendBtn) dom.sendBtn.disabled = false;
       dom.errorMsg?.classList.add('hidden');
     } else {
       if (text.length >= 10) {
-        dom.sendBtn.disabled = false;
+        if (dom.sendBtn) dom.sendBtn.disabled = false;
         dom.errorMsg?.classList.add('hidden');
       } else {
-        dom.sendBtn.disabled = true;
+        if (dom.sendBtn) dom.sendBtn.disabled = true;
         if (text.length > 0) {
           dom.errorMsg?.classList.remove('hidden');
         }
       }
     }
   }
+
   async function sendFeedback() {
+    if (!dom.sendBtn) return;
     dom.sendBtn.disabled = true;
     dom.sendBtn.textContent = "Отправка... ⏳";
 
     const user = tg?.initDataUnsafe?.user || { id: 'Локальный тест', first_name: 'Разработчик', username: 'test_user' };
-    const textReview = dom.textarea.value.trim();
+    const textReview = dom.textarea ? dom.textarea.value.trim() : '';
 
-    // Собираем данные в объект (проверь, чтобы названия полей совпадали с тем, что ждет бэкенд!)
     const feedbackData = {
-      rating: selectedRating, // убедись, что глобальная переменнаяselectedRating доступна в файле
+      rating: selectedRating,
       user: user,
       text: textReview
     };
 
     try {
-      // Чистый await запрос к бэкенду
       const response = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true' // Пробиваем заглушку ngrok 🚀
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(feedbackData)
       });
 
-      // Если сервер вернул ошибку (например, 400 или 500)
       if (!response.ok) {
         throw new Error('Ошибка сервера');
       }
 
-      // Если всё успешно, парсим JSON (если бэкенд что-то возвращает)
-      const data = await response.json();
+      await response.json();
 
-      // Логика успешного выполнения
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       localStorage.setItem('app_feedback_submitted', 'true');
 
@@ -143,4 +142,36 @@
       dom.sendBtn.textContent = "Отправить отзыв";
     }
   }
+
+  function resetForm() {
+    selectedRating = 0;
+    if (dom.textarea) dom.textarea.value = '';
+    dom.stars.forEach(star => star.classList.remove('active'));
+    dom.formBlock?.classList.remove('show');
+    if (dom.sendBtn) {
+      dom.sendBtn.style.background = '#2563eb';
+      dom.sendBtn.textContent = "Отправить отзыв";
+      dom.sendBtn.disabled = true;
+    }
+  }
+
+  function checkExistingFeedback() {
+    const isSubmitted = localStorage.getItem('app_feedback_submitted') === 'true';
+    const menuBtn = document.getElementById('menu-btn-feedback');
+
+    if (menuBtn) {
+      if (isSubmitted) {
+        menuBtn.innerHTML = "✏️ Изменить отзыв";
+      } else {
+        menuBtn.innerHTML = "⭐ Оценить нас";
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
 })();
