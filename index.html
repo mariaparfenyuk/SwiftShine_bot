@@ -50,7 +50,6 @@
           <span>🗺️ План квартиры</span>
           <span>→</span>
         </button>
-        <button class="btn-menu-item" id="menu-btn-feedback" onclick="switchScreen('feedback')">⭐ Оценить нас</button>
       </div>
     </div>
 
@@ -118,7 +117,7 @@
           <button class="btn-menu-item" style="text-align: center; justify-content: center; margin-top: 12px;" onclick="switchScreen('menu')">↩ В Главное меню</button>
         </div>
       </div>
-      <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></auto>
+      <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
     </div>
 
     <div id="screen-roulette" style="display: none;">
@@ -151,33 +150,6 @@
       </div>
     </div>
 
-    <div id="screen-feedback" style="display: none;">
-      <div class="feedback-container">
-        <div class="feedback-header">
-          <button id="btn-feedback-back" class="back-btn" onclick="switchScreen('menu')">← Назад</button>
-          <h2>Оценить приложение</h2>
-        </div>
-
-        <div class="feedback-card">
-          <p class="feedback-instruction">Твое мнение помогает делать уборку приятнее! Поставь оценку:</p>
-          
-          <div class="rating-stars" id="rating-stars-container">
-            <span class="star" data-value="1">★</span>
-            <span class="star" data-value="2">★</span>
-            <span class="star" data-value="3">★</span>
-            <span class="star" data-value="4">★</span>
-            <span class="star" data-value="5">★</span>
-          </div>
-
-          <div id="feedback-form-block" class="feedback-form-block">
-            <textarea id="feedback-text" rows="4" placeholder="Что мы можем улучшить?"></textarea>
-          </div>
-
-          <button id="btn-feedback-send" class="feedback-submit-btn" disabled>Отправить отзыв</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <script>
@@ -193,7 +165,6 @@
       document.getElementById('screen-roulette').style.display = 'none';
       document.getElementById('screen-map').style.display = 'none';
       document.getElementById('screen-profile').style.display = 'none'; 
-      document.getElementById('screen-feedback').style.display = 'none'; 
 
       const target = document.getElementById(`screen-${screenName}`);
       if (target) {
@@ -210,6 +181,5 @@
   <script src="js/gamification.js"></script>
   <script src="js/slot-machine.js"></script>
   <script src="js/home-map.js?v=3"></script>
-  <script src="js/feedback.js?v=405"></script>
 </body>
 </html>
