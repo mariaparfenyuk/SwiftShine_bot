@@ -119,7 +119,6 @@
 
       await response.json();
 
-      // Успешный сценарий
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       localStorage.setItem('app_feedback_submitted', 'true');
 
