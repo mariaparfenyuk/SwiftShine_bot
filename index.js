@@ -70,6 +70,34 @@ bot.action('get_everyday_task', async (ctx) => {
   const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
   await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
 });
+bot.on('web_app_data', async (ctx) => {
+  try {
+    const rawData = ctx.message?.web_app_data?.data;
+    if (!rawData) return;
+
+    const data = JSON.parse(rawData);
+
+    if (data.action === 'user_feedback') {
+      const user = ctx.from;
+      const username = user.username ? `@${user.username}` : user.first_name;
+      const stars = '⭐'.repeat(data.rating);
+
+      const adminMessage = `🔔 *Новый отзыв!*\n\n` +
+        `👤 *От:* ${username} (ID: \`${user.id}\`)\n` +
+        `📊 *Оценка:* ${stars} (${data.rating}/5)\n` +
+        `✍️ *Текст:* ${data.text || '_Без текста_'}`;
+      if (process.env.ADMIN_CHAT_ID) {
+        await ctx.telegram.sendMessage(Number(process.env.ADMIN_CHAT_ID), adminMessage, { parse_mode: 'Markdown' });
+      } else {
+        console.error('Ошибка: Переменная ADMIN_CHAT_ID не найдена в .env');
+      }
+
+      await ctx.reply(`Спасибо! Твой отзыв (${data.rating}/5) успешно получен. Мы ценим твою обратную связь! ❤️`);
+    }
+  } catch (error) {
+    console.error('Ошибка при обработке web_app_data:', error);
+  }
+});
 
 bot.action('get_zone_checklist', async (ctx) => {
   await ctx.answerCbQuery();
