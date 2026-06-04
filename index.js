@@ -47,11 +47,13 @@ const keyboards = {
 
   stars: Markup.inlineKeyboard([
     [
-      Markup.button.callback('⭐', 'rate_1'),
-      Markup.button.callback('⭐⭐', 'rate_2'),
-      Markup.button.callback('⭐⭐⭐', 'rate_3'),
-      Markup.button.callback('⭐⭐⭐⭐', 'rate_4'),
-      Markup.button.callback('⭐⭐⭐⭐⭐', 'rate_5')
+      Markup.button.callback('1️⃣ ⭐', 'rate_1'),
+      Markup.button.callback('2️⃣ ⭐⭐', 'rate_2'),
+      Markup.button.callback('3️⃣ ⭐⭐⭐', 'rate_3')
+    ],
+    [
+      Markup.button.callback('4️⃣ ⭐⭐⭐⭐', 'rate_4'),
+      Markup.button.callback('5️⃣ ⭐⭐⭐⭐⭐', 'rate_5')
     ],
     [Markup.button.callback(messages.BACK, 'go_to_main')]
   ]),
