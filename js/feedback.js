@@ -4,7 +4,7 @@
   const tg = window.Telegram?.WebApp;
   let selectedRating = 0;
 
-  const BACKEND_URL = 'https://decorator-litmus-grouped.ngrok-free.dev/api/feedback';
+  const BACKEND_URL = '/api/feedback';
 
   const dom = {
     stars: document.querySelectorAll('#rating-stars-container .star'),
@@ -108,8 +108,7 @@
       const response = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(feedbackData)
       });
@@ -120,6 +119,7 @@
 
       await response.json();
 
+      // Успешный сценарий
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       localStorage.setItem('app_feedback_submitted', 'true');
 

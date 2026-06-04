@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/feedback",
+      "destination": "http://5.22.222.29:3000/api/feedback"
+    }
+  ]
+}
