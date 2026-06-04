@@ -4,8 +4,6 @@
   const tg = window.Telegram?.WebApp;
   let selectedRating = 0;
 
-  const BACKEND_URL = '/api/feedback';
-
   const dom = {
     stars: document.querySelectorAll('#rating-stars-container .star'),
     formBlock: document.getElementById('feedback-form-block'),
@@ -18,6 +16,8 @@
   function init() {
     bindEvents();
     checkExistingFeedback();
+    // Расширяем WebApp на весь экран, чтобы кнопка была видна красиво
+    if (tg) tg.expand();
   }
 
   function bindEvents() {
@@ -29,8 +29,7 @@
     });
 
     dom.textarea?.addEventListener('input', validateForm);
-
-    dom.sendBtn?.addEventListener('click', sendFeedback);
+    dom.sendBtn?.addEventListener('click', sendFeedbackToTelegram);
 
     dom.backBtn?.addEventListener('click', () => {
       if (typeof window.switchScreen === 'function') {
@@ -90,67 +89,38 @@
     }
   }
 
-  async function sendFeedback() {
+  function sendFeedbackToTelegram() {
     if (!dom.sendBtn) return;
+
     dom.sendBtn.disabled = true;
     dom.sendBtn.textContent = "Отправка... ⏳";
 
-    const user = tg?.initDataUnsafe?.user || { id: 'Локальный тест', first_name: 'Разработчик', username: 'test_user' };
     const textReview = dom.textarea ? dom.textarea.value.trim() : '';
 
+    // Формируем объект отзыва
     const feedbackData = {
+      action: 'user_feedback', // Маркер для бэкенда, чтобы он понял, что это отзыв
       rating: selectedRating,
-      user: user,
       text: textReview
     };
 
-    try {
-      const response = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(feedbackData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Ошибка сервера');
-      }
-
-      await response.json();
-
-      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg) {
+      if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       localStorage.setItem('app_feedback_submitted', 'true');
 
       dom.sendBtn.style.background = '#22c55e';
-      dom.sendBtn.textContent = "Спасибо за отзыв! ❤️";
+      dom.sendBtn.textContent = "Спасибо! Отправляем... ❤️";
 
+      // МАГИЯ ТУТ: Отправляем данные напрямую в чат боту и закрываем окно!
       setTimeout(() => {
-        resetForm();
-        if (typeof window.switchScreen === 'function') {
-          window.switchScreen('main');
-        }
-        checkExistingFeedback();
-      }, 2000);
+        tg.sendData(JSON.stringify(feedbackData));
+      }, 1000);
 
-    } catch (error) {
-      console.error('Ошибка при отправке:', error);
-      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-      alert('Ошибка отправки. Попробуй еще раз! 🤖');
+    } else {
+      // Заглушка, если тестируешь просто в браузере на ПК без Телеграма
+      alert('В обычном браузере отправка невозможна, запустите внутри Telegram!');
       dom.sendBtn.disabled = false;
       dom.sendBtn.textContent = "Отправить отзыв";
-    }
-  }
-
-  function resetForm() {
-    selectedRating = 0;
-    if (dom.textarea) dom.textarea.value = '';
-    dom.stars.forEach(star => star.classList.remove('active'));
-    dom.formBlock?.classList.remove('show');
-    if (dom.sendBtn) {
-      dom.sendBtn.style.background = '#2563eb';
-      dom.sendBtn.textContent = "Отправить отзыв";
-      dom.sendBtn.disabled = true;
     }
   }
 
