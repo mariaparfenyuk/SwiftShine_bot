@@ -36,7 +36,11 @@ function setupActionsHandlers(bot) {
     }
 
     const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
-    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
+
+    await ctx.reply(message, {
+      parse_mode: 'Markdown',
+      ...keyboards.navigation
+    });
   });
 
   bot.action('get_zone_checklist', async (ctx) => {
@@ -47,16 +51,22 @@ function setupActionsHandlers(bot) {
 
       if (!weekData) {
         const emptyMessage = `🧹 *Чек-лист по зонам*\n\nНа этой неделе (Неделя ${currentWeek}) план уборки отдыхает. Расслабься!`;
-        return ctx.reply(emptyMessage, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
+        return ctx.reply(emptyMessage, {
+          parse_mode: 'Markdown',
+          ...keyboards.navigation
+        });
       }
 
       const tasksList = weekData.tasks.map((task, index) => `${index + 1}. ◽️ ${task}`).join('\n');
       const message = `${weekData.emoji} *Неделя ${weekData.week}: Зона «${weekData.zone}»*\n⚠️ *Твой чек-лист на эти 7 дней:*\nВыбирай по 1-2 пункта в день, ставь таймер на 15 минут и действуй!\n\n${tasksList}`;
 
-      await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
+      await ctx.reply(message, {
+        parse_mode: 'Markdown',
+        ...keyboards.navigation
+      });
     } catch (error) {
       console.error('Checklist Error:', error);
-      await ctx.reply(messages.CHECK_LIST_ERROR, keyboards.navigation);
+      await ctx.reply(messages.CHECK_LIST_ERROR, { ...keyboards.navigation });
     }
   });
 
@@ -69,10 +79,15 @@ function setupActionsHandlers(bot) {
 
       const message = `${expressCheckListData.title}\n\n${expressCheckListData.intro}\n\n──────────────────\n\n${formattedSteps}\n\n──────────────────\n\n✨ *${expressCheckListData.outro}*`;
 
-      await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
+      await ctx.reply(message, {
+        parse_mode: 'Markdown',
+        ...keyboards.navigation
+      });
     } catch (error) {
       console.error('Express Clean Error:', error);
-      await ctx.reply(messages.EXPRESS_ERROR, keyboards.navigation);
+      await ctx.reply(messages.EXPRESS_ERROR, {
+        ...keyboards.navigation
+      });
     }
   });
 
