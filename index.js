@@ -7,9 +7,10 @@ const express = require('express');
 const { getTodayTask } = require('./utils/getTodayTask');
 const { updateBotDateCache } = require('./utils/updateBotDateCache');
 const { trackStats } = require('./utils/trackStats');
+const { keyboards, APP_URL } = require('./keyboards');
 const { messages } = require('./messages');
+const { updateUsersStats } = require('./statsService');
 
-const APP_URL = 'https://swift-shine-bot-mariia-parfeniuks-projects.vercel.app/';
 const BOT_TOKEN = process.env.BOT_TOKEN;
 
 if (!BOT_TOKEN) {
@@ -19,80 +20,10 @@ if (!BOT_TOKEN) {
 
 const bot = new Telegraf(BOT_TOKEN);
 
-const statsPath = path.join(__dirname, 'stats.json');
-
-function updateUsersStats(user) {
-  if (!user || !user.id) return;
-
-  try {
-    let users = {};
-    if (fs.existsSync(statsPath)) {
-      users = JSON.parse(fs.readFileSync(statsPath, 'utf-8'));
-    }
-
-    const userId = String(user.id);
-    const now = new Date().toISOString();
-
-    if (!users[userId]) {
-      users[userId] = {
-        username: user.username || null,
-        first_name: user.first_name || 'Anonymous',
-        first_start: now,
-        last_seen: now,
-        is_premium: false,
-        premium_until: null
-      };
-    } else {
-      users[userId].username = user.username || users[userId].username;
-      users[userId].first_name = user.first_name || users[userId].first_name;
-      users[userId].last_seen = now;
-    }
-
-    fs.writeFileSync(statsPath, JSON.stringify(users, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Ошибка записи статистики в JSON:', error);
-  }
-}
-
 const loadJson = (fileName) => JSON.parse(fs.readFileSync(path.join(__dirname, fileName), 'utf-8'));
 const everydayTasksData = loadJson('everydayTasks.json');
 const monthTasksData = loadJson('monthTasks.json');
 const expressCheckListData = loadJson('expressCheckList.json');
-
-const keyboards = {
-  main: Markup.inlineKeyboard([
-    [Markup.button.webApp('✨ Открыть Помощник Уборки', APP_URL)],
-    [Markup.button.callback(messages.EVERYDAY_TASK, 'get_everyday_task')],
-    [Markup.button.callback(messages.CHECK_LIST, 'get_zone_checklist')],
-    [Markup.button.callback(messages.EXPRESS, 'get_express_clean')],
-    [Markup.button.callback('⭐ Оценить бота', 'start_feedback')],
-    [Markup.button.callback(messages.DONATE, 'go_to_donate')]
-  ]),
-
-  navigation: Markup.inlineKeyboard([
-    [Markup.button.callback(messages.BACK, 'go_to_main')],
-    [Markup.button.callback(messages.DONATE, 'go_to_donate')]
-  ]),
-
-  donate: Markup.inlineKeyboard([
-    [Markup.button.url(messages.PAYPAL, 'https://paypal.me/MParfeniuk100')],
-    [Markup.button.url(messages.BOOSTY, 'https://boosty.to/parfeniuk/donate')],
-    [Markup.button.callback(messages.BACK, 'go_to_main')]
-  ]),
-
-  stars: Markup.inlineKeyboard([
-    [
-      Markup.button.callback('1️⃣ ⭐', 'rate_1'),
-      Markup.button.callback('2️⃣ ⭐⭐', 'rate_2'),
-      Markup.button.callback('3️⃣ ⭐⭐⭐', 'rate_3')
-    ],
-    [
-      Markup.button.callback('4️⃣ ⭐⭐⭐⭐', 'rate_4'),
-      Markup.button.callback('5️⃣ ⭐⭐⭐⭐⭐', 'rate_5')
-    ],
-    [Markup.button.callback(messages.BACK, 'go_to_main')]
-  ]),
-};
 
 function getFreshBotDate() {
   return updateBotDateCache();
