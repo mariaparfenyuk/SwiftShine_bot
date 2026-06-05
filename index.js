@@ -1,34 +1,21 @@
 require('dotenv').config();
-const { Telegraf, Markup } = require('telegraf');
-const fs = require('fs');
-const path = require('path');
+const { Telegraf } = require('telegraf');
 const express = require('express');
+const path = require('path');
 
-const { getTodayTask } = require('./utils/getTodayTask');
-const { updateBotDateCache } = require('./utils/updateBotDateCache');
-const { trackStats } = require('./utils/trackStats');
-const { keyboards, APP_URL } = require('./keyboards');
+const { keyboards } = require('./keyboards');
 const { messages } = require('./messages');
 const { updateUsersStats } = require('./statsService');
 const { setupFeedbackHandlers } = require('./feedbackHandler');
+const { setupActionsHandlers, monthTasksData } = require('./actionsHandler');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-
 if (!BOT_TOKEN) {
   console.error('CRITICAL: BOT_TOKEN is missing in environment variables!');
   process.exit(1);
 }
 
 const bot = new Telegraf(BOT_TOKEN);
-
-const loadJson = (fileName) => JSON.parse(fs.readFileSync(path.join(__dirname, fileName), 'utf-8'));
-const everydayTasksData = loadJson('everydayTasks.json');
-const monthTasksData = loadJson('monthTasks.json');
-const expressCheckListData = loadJson('expressCheckList.json');
-
-function getFreshBotDate() {
-  return updateBotDateCache();
-}
 
 bot.use(async (ctx, next) => {
   if (ctx.from) {
@@ -37,150 +24,16 @@ bot.use(async (ctx, next) => {
   return next();
 });
 
-bot.start((ctx) => {
-  trackStats();
-  ctx.reply(messages.HELLO, keyboards.main);
-});
-
-bot.help((ctx) => {
-  ctx.reply(messages.HELP_MESSAGE, { parse_mode: 'Markdown', reply_markup: keyboards.main });
-});
-
-bot.action('get_everyday_task', async (ctx) => {
-  await ctx.answerCbQuery();
-  const currentDate = getFreshBotDate();
-  let task = getTodayTask(everydayTasksData, currentDate.day, currentDate.month);
-
-  if (!task) {
-    task = { zone: messages.ALL_HOME, text: messages.BUGY_27 };
-  }
-
-  const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
-  await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
-});
-
-bot.command('admin_stats', async (ctx) => {
-  const userId = ctx.from.id;
-  const adminId = Number(process.env.ADMIN_CHAT_ID);
-
-  if (userId !== adminId) return;
-
-  try {
-    const statsPath = path.join(__dirname, 'stats.json');
-
-    if (!fs.existsSync(statsPath)) {
-      return ctx.reply('📊 Статистика пуста. Файл stats.json еще не создан.');
-    }
-
-    const users = JSON.parse(fs.readFileSync(statsPath, 'utf-8'));
-    const totalUsers = Object.keys(users).length;
-
-    let premiumCount = 0;
-    const now = new Date();
-
-    Object.values(users).forEach(user => {
-      if (user.is_premium) {
-        premiumCount++;
-      } else if (user.premium_until && new Date(user.premium_until) > now) {
-        premiumCount++;
-      }
-    });
-
-    const report = `📊 *Текущая статистика бота:*\n\n` +
-      `👥 Всего пользователей в базе: *${totalUsers}*\n` +
-      `👑 С активным Premium: *${premiumCount}*\n` +
-      `🆓 На бесплатном триале: *${totalUsers - premiumCount}*`;
-
-    await ctx.reply(report, { parse_mode: 'Markdown' });
-
-  } catch (error) {
-    console.error('Ошибка при чтении статистики для админа:', error);
-    await ctx.reply('❌ Ошибка при сборке статистики.');
-  }
-});
-
-bot.on('web_app_data', async (ctx) => {
-  try {
-    const rawData = ctx.message?.web_app_data?.data;
-    if (!rawData) return;
-
-    const data = JSON.parse(rawData);
-
-    if (data.action === 'user_feedback') {
-      const user = ctx.from;
-      const username = user.username ? `@${user.username}` : user.first_name;
-      const stars = '⭐'.repeat(data.rating);
-
-      const adminMessage = `🔔 *Новый отзыв!*\n\n` +
-        `👤 *От:* ${username} (ID: \`${user.id}\`)\n` +
-        `📊 *Оценка:* ${stars} (${data.rating}/5)\n` +
-        `✍️ *Текст:* ${data.text || '_Без текста_'}`;
-      if (process.env.ADMIN_CHAT_ID) {
-        await ctx.telegram.sendMessage(Number(process.env.ADMIN_CHAT_ID), adminMessage, { parse_mode: 'Markdown' });
-      } else {
-        console.error('Ошибка: Переменная ADMIN_CHAT_ID не найдена в .env');
-      }
-
-      await ctx.reply(`Спасибо! Твой отзыв (${data.rating}/5) успешно получен. Мы ценим твою обратную связь! ❤️`);
-    }
-  } catch (error) {
-    console.error('Ошибка при обработке web_app_data:', error);
-  }
-});
-
-bot.action('get_zone_checklist', async (ctx) => {
-  await ctx.answerCbQuery();
-  try {
-    const currentWeek = getFreshBotDate().flyLadyWeek;
-    const weekData = monthTasksData.find(item => item.week === currentWeek);
-
-    if (!weekData) {
-      const emptyMessage = `🧹 *Чек-лист по зонам*\n\nНа этой неделе (Неделя ${currentWeek}) план уборки отдыхает. Расслабься!`;
-      return ctx.reply(emptyMessage, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
-    }
-
-    const tasksList = weekData.tasks.map((task, index) => `${index + 1}. ◽️ ${task}`).join('\n');
-    const message = `${weekData.emoji} *Неделя ${weekData.week}: Зона «${weekData.zone}»*\n⚠️ *Твой чек-лист на эти 7 дней:*\nВыбирай по 1-2 пункта в день, ставь таймер на 15 минут и действуй!\n\n${tasksList}`;
-
-    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
-  } catch (error) {
-    console.error('Checklist Error:', error);
-    await ctx.reply(messages.CHECK_LIST_ERROR, keyboards.navigation);
-  }
-});
-
-bot.action('get_express_clean', async (ctx) => {
-  await ctx.answerCbQuery();
-  try {
-    const formattedSteps = expressCheckListData.steps
-      .map(s => `⏱ *Шаг ${s.step} [${s.time}]: ${s.action}*\n${s.description}`)
-      .join('\n\n');
-
-    const message = `${expressCheckListData.title}\n\n${expressCheckListData.intro}\n\n──────────────────\n\n${formattedSteps}\n\n──────────────────\n\n✨ *${expressCheckListData.outro}*`;
-
-    await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
-  } catch (error) {
-    console.error('Express Clean Error:', error);
-    await ctx.reply(messages.EXPRESS_ERROR, keyboards.navigation);
-  }
-});
-
-bot.action('go_to_donate', async (ctx) => {
-  await ctx.answerCbQuery();
-  await ctx.reply(messages.DONATE_MESSAGE, { parse_mode: 'Markdown', reply_markup: keyboards.donate });
-});
-
-bot.action('go_to_main', async (ctx) => {
-  await ctx.answerCbQuery();
-  await ctx.reply(messages.MAIN_MENU, keyboards.main);
-});
-
+setupActionsHandlers(bot);
 setupFeedbackHandlers(bot);
+
+bot.on('web_app_data', async (ctx) => { /* твой старый пустой или резервный обработчик, если нужен */ });
 
 bot.catch((err, ctx) => {
   console.error(`Telegraf caught an error: ${err.message}`);
   ctx.reply(messages.ERROR, keyboards.main);
 });
+
 const app = express();
 
 app.use(express.static(__dirname, {
