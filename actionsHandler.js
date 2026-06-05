@@ -78,7 +78,10 @@ function setupActionsHandlers(bot) {
 
   bot.action('go_to_donate', async (ctx) => {
     await ctx.answerCbQuery();
-    await ctx.reply(messages.DONATE_MESSAGE, { parse_mode: 'Markdown', reply_markup: keyboards.donate });
+    await ctx.reply(messages.DONATE_MESSAGE, {
+      parse_mode: 'Markdown',
+      ...keyboards.donate
+    });
   });
 
   bot.action('go_to_main', async (ctx) => {
