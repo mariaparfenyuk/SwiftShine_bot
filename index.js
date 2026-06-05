@@ -19,6 +19,41 @@ if (!BOT_TOKEN) {
 
 const bot = new Telegraf(BOT_TOKEN);
 
+const statsPath = path.join(__dirname, 'stats.json');
+
+function updateUsersStats(user) {
+  if (!user || !user.id) return;
+
+  try {
+    let users = {};
+    if (fs.existsSync(statsPath)) {
+      users = JSON.parse(fs.readFileSync(statsPath, 'utf-8'));
+    }
+
+    const userId = String(user.id);
+    const now = new Date().toISOString();
+
+    if (!users[userId]) {
+      users[userId] = {
+        username: user.username || null,
+        first_name: user.first_name || 'Anonymous',
+        first_start: now,
+        last_seen: now,
+        is_premium: false,
+        premium_until: null
+      };
+    } else {
+      users[userId].username = user.username || users[userId].username;
+      users[userId].first_name = user.first_name || users[userId].first_name;
+      users[userId].last_seen = now;
+    }
+
+    fs.writeFileSync(statsPath, JSON.stringify(users, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Ошибка записи статистики в JSON:', error);
+  }
+}
+
 const loadJson = (fileName) => JSON.parse(fs.readFileSync(path.join(__dirname, fileName), 'utf-8'));
 const everydayTasksData = loadJson('everydayTasks.json');
 const monthTasksData = loadJson('monthTasks.json');
@@ -63,6 +98,13 @@ function getFreshBotDate() {
   return updateBotDateCache();
 }
 
+bot.use(async (ctx, next) => {
+  if (ctx.from) {
+    updateUsersStats(ctx.from);
+  }
+  return next();
+});
+
 bot.start((ctx) => {
   trackStats();
   ctx.reply(messages.HELLO, keyboards.main);
@@ -84,6 +126,47 @@ bot.action('get_everyday_task', async (ctx) => {
   const message = `📅 *Задание на сегодня*\n📍 *Зона:* ${task.zone}\n──────────────────\n\n${task.text}`;
   await ctx.reply(message, { parse_mode: 'Markdown', reply_markup: keyboards.navigation });
 });
+
+bot.command('admin_stats', async (ctx) => {
+  const userId = ctx.from.id;
+  const adminId = Number(process.env.ADMIN_CHAT_ID);
+
+  if (userId !== adminId) return;
+
+  try {
+    const statsPath = path.join(__dirname, 'stats.json');
+
+    if (!fs.existsSync(statsPath)) {
+      return ctx.reply('📊 Статистика пуста. Файл stats.json еще не создан.');
+    }
+
+    const users = JSON.parse(fs.readFileSync(statsPath, 'utf-8'));
+    const totalUsers = Object.keys(users).length;
+
+    let premiumCount = 0;
+    const now = new Date();
+
+    Object.values(users).forEach(user => {
+      if (user.is_premium) {
+        premiumCount++;
+      } else if (user.premium_until && new Date(user.premium_until) > now) {
+        premiumCount++;
+      }
+    });
+
+    const report = `📊 *Текущая статистика бота:*\n\n` +
+      `👥 Всего пользователей в базе: *${totalUsers}*\n` +
+      `👑 С активным Premium: *${premiumCount}*\n` +
+      `🆓 На бесплатном триале: *${totalUsers - premiumCount}*`;
+
+    await ctx.reply(report, { parse_mode: 'Markdown' });
+
+  } catch (error) {
+    console.error('Ошибка при чтении статистики для админа:', error);
+    await ctx.reply('❌ Ошибка при сборке статистики.');
+  }
+});
+
 bot.on('web_app_data', async (ctx) => {
   try {
     const rawData = ctx.message?.web_app_data?.data;
